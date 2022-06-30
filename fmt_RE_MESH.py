@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.9993 (June 30 2022)
+#v2.9994 (June 30 2022)
 #Authors: alphaZomega, originally by Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -241,6 +241,11 @@ tex_format_list = {
 	132: "V408",
 	0xffffffff:  "FORCE_UINT" 
 }
+
+def sort_human(List):
+	convert = lambda text: float(text) if text.isdigit() else text
+	output = sorted(List, key=lambda x: [convert(c) for c in re.split('([-+]?[0-9]*\.?[0-9]*)', x.name)])
+	return output
 
 class openOptionsDialogWindow:
 	
@@ -499,9 +504,9 @@ def meshCheckType(data):
 	bs = NoeBitStream(data)
 	magic = bs.readUInt()
 	
-	stream = os.popen('echo Returned output')
-	output = stream.read()
-	print(output)
+	#stream = os.popen('echo Returned output')
+	#output = stream.read()
+	#print(output)
 	
 	if magic == 0x4853454D:
 		return 1
@@ -2196,7 +2201,7 @@ class meshFile(object):
 					submeshDataArr.append(submeshData)
 					
 					for k in range(meshVertexInfo[j][1]): # Submeshes
-					
+						
 						if bUseOldNamingScheme:
 							meshName = "LODGroup_" + str(i+1) + "_MainMesh_" + str(j+1) + "_SubMesh_" + str(submeshData[k][0]+1)
 						else:
@@ -2295,10 +2300,17 @@ class meshFile(object):
 				mdl.setBones(self.boneList)
 				mdl.setModelMaterials(NoeModelMaterials(self.texList, self.matList))
 				mdlList.append(mdl)
-					
+				'''
+				#check vertex component's normals on import (MHRise Sunbreak em077_00.mesh)::
+				for m, mesh in enumerate(mdl.meshes):
+					for u, uv in enumerate(mesh.uvs):
+						if uv[0] == 0.79638671875  and uv[1] == 0.830078125:
+							print(mesh.name, len(mesh.positions), "Vert", u, "\nPosition:", mesh.positions[u][0], mesh.positions[u][1], mesh.positions[u][2])
+							print("Normal:",   mesh.tangents[u][0], mesh.tangents[u][1], mesh.tangents[u][2], mesh.tangents[u][3])'''
+							
 				if not bImportAllLODs:
 					break
-					
+				
 			print ("\nMESH Material Count:", matCount)
 			if bLoadedMats:
 				print ("MDF Material Count:", len(self.matList))
@@ -2350,7 +2362,9 @@ class meshFile(object):
 					mdlList.append(mdl)
 				except:
 					print("Failed to read Occluder Mesh")
-
+		
+		
+		
 		print (deferredWarning)
 		
 		return mdlList
@@ -2411,7 +2425,7 @@ def getExportName(fileName, exportType=".mesh"):
 	if noesis.optWasInvoked("-flip") or newMeshName.find(" -flip") != -1:
 		newMeshName = newMeshName.replace(" -flip", "")
 		print ("Exporting with OpenGL handedness")
-		w1 = 127; w2 = -128
+		w1 = -128; w2 = 127
 	
 	if noesis.optWasInvoked("-bones") or newMeshName.find(" -bones") != -1:
 		newMeshName = newMeshName.replace(" -bones", "")
@@ -2500,7 +2514,6 @@ def skelWriteFbxskel(mdl, bs):
 				
 				break
 	return 1
-			
 
 '''MESH EXPORT ========================================================================================================================================================================'''
 def meshWriteModel(mdl, bs):
@@ -2509,10 +2522,9 @@ def meshWriteModel(mdl, bs):
 	bWriteBones = noesis.optWasInvoked("-bones")
 	bReWrite = noesis.optWasInvoked("-rewrite")
 	
-	w1 = -128
-	w2 = 127
+	w1 = 127; w2 = -128
 	if noesis.optWasInvoked("-flip"): 
-		w1 = 127; w2 = -128
+		w1 = -128; w2 = 127
 	
 	if bAlwaysRewrite or noesis.optWasInvoked("-b"):
 		bReWrite = True
@@ -2538,7 +2550,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.9993 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.9994 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2580,7 +2592,9 @@ def meshWriteModel(mdl, bs):
 	newScale = (1 / fDefaultMeshScale)
 	
 	#merge Noesis-split meshes back together:	
-	meshesToExport = sorted(mdl.meshes, key=lambda x: x.name) #sort by name (if FBX reorganized)
+	meshesToExport = sort_human(mdl.meshes) #sort by name (if FBX reorganized) 
+	
+	
 	if meshesToExport[0].name.find("_") == 4:
 		print ("WARNING: Noesis-split meshes detected. Merging meshes back together...")
 		ctx = rapi.rpgCreateContext()
@@ -2756,6 +2770,9 @@ def meshWriteModel(mdl, bs):
 		print ("  Rigged mesh detected, exporting with skin weights...")
 	else:
 		print("  No rigging detected")
+		
+	bIsFromFBX = (rapi.getInputName().find(".fbx") != -1)
+	print("From FBX:", bIsFromFBX)
 		
 	#check if exporting bones and create skin bone map if so:	
 	vertElemCount = 3 
@@ -3024,7 +3041,6 @@ def meshWriteModel(mdl, bs):
 	#====================================================================
 	if bReWrite: #save new mesh order	
 		bDoUV2 = True
-	
 		#prepare new submesh order:
 		newMainMeshes = []; newSubMeshes = []; newMaterialNames = []
 		indicesBefore = 0; vertsBefore = 0; mmIndCount = 0; mmVertCount = 0
@@ -3041,6 +3057,7 @@ def meshWriteModel(mdl, bs):
 		print ("\nMESH Material Count:", numMats)
 		
 		for i, mesh in enumerate(submeshes):
+			print(mesh.name)
 			try:
 				if len(splitName) <= 6:
 					bReWrite = False
@@ -3560,25 +3577,26 @@ def meshWriteModel(mdl, bs):
 				
 		normalTangentStart = bs.tell()	
 		for mesh in submeshes:
-			for vcmp in mesh.tangents:
+			for v, vcmp in enumerate(mesh.tangents):
+				'''
+				#check vertex component's normals on export (MHRise Sunbreak em077_00.mesh):
+				if mesh.uvs[v][0] == 0.79638671875 and mesh.uvs[v][1] == 0.830078125:
+					print(mesh.name, len(mesh.positions), "Vert", v, "\nPosition:", mesh.positions[v][0], mesh.positions[v][1], mesh.positions[v][2])
+					#print("Normal:",   mesh.tangents[v][0], mesh.tangents[v][1], mesh.tangents[v][2], mesh.tangents[v][3])
+					print("Normal:",   vcmp[0], vcmp[1], vcmp[2], vcmp[3])'''
+					
 				bs.writeByte(int(vcmp[0][0] * 127 + 0.5000000001)) #normal
 				bs.writeByte(int(vcmp[0][1] * 127 + 0.5000000001))
-				bs.writeByte(int(vcmp[0][2] * 127 + 0.5000000001)) #roundValue
+				bs.writeByte(int(vcmp[0][2] * 127 + 0.5000000001))
 				bs.writeByte(0)
 				bs.writeByte(int(vcmp[2][0] * 127 + 0.5000000001)) #bitangent
 				bs.writeByte(int(vcmp[2][1] * 127 + 0.5000000001))
 				bs.writeByte(int(vcmp[2][2] * 127 + 0.5000000001))
 				TNW = dot(cross(vcmp[0], vcmp[1]), vcmp[2])
-				if bReWrite:
-					if (TNW > 0.0):
-						bs.writeByte(w1)
-					else:
-						bs.writeByte(w2)
+				if (TNW < 0.0): #default way
+					bs.writeByte(w1)
 				else:
-					if (TNW < 0.0):
-						bs.writeByte(w1)
-					else:
-						bs.writeByte(w2)
+					bs.writeByte(w2)
 					
 		UV0start = bs.tell()
 		for mesh in submeshes:
