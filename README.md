@@ -1,6 +1,5 @@
 # fmt_RE_MESH-Noesis-Plugin
 A plugin for Rich Whitehouse's Noesis to import and export RE Engine Meshes and Textures
-by alphaZomega, based on original plugin by Gh0stblade
 
 ## INSTALLATION:
 Download Noesis from here: https://www.richwhitehouse.com/index.php?content=inc_projects.php&showproject=91
@@ -17,3 +16,6 @@ https://residentevilmodding.boards.net/thread/15374/noesis-maxscript-custom-phys
 ### Main Threads for Updates:
 https://residentevilmodding.boards.net/thread/13501/exporting-custom-models-dmc5-noesis
 https://residentevilmodding.boards.net/thread/14726/re8-mhrise-modding-tools
+
+### Credits
+Thanks to Gh0stblade for creating the original version of this plugin in 2019
