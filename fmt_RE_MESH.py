@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.99941 (July 1 2022)
+#v2.99942 (July 1 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -2549,7 +2549,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.99941 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.99942 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2727,6 +2727,8 @@ def meshWriteModel(mdl, bs):
 		fileName = None
 		if noesis.optWasInvoked("-meshfile"):
 			newMeshName = noesis.optGetArg("-meshfile")
+			newMesh = rapi.loadIntoByteArray(newMeshName)
+			f = NoeBitStream(newMesh)
 			return newMeshName
 		else:
 			newMeshName = getExportName(fileName)
@@ -2741,13 +2743,6 @@ def meshWriteModel(mdl, bs):
 		if not bReWrite:		
 			newMesh = rapi.loadIntoByteArray(newMeshName)
 			f = NoeBitStream(newMesh)
-			magic = f.readUInt()
-			if magic != 1213416781:
-				noesis.messagePrompt("Not a MESH file.\nAborting...")
-				return 0		
-			bonesOffs = readUIntAt(f, 48)
-			if bonesOffs > 0:
-				bDoSkin = True
 		else:
 			checkReWriteMeshes()
 			if not bReWrite:
@@ -2757,6 +2752,15 @@ def meshWriteModel(mdl, bs):
 		checkReWriteMeshes()
 	else:
 		showOptionsDialog()
+		
+	if f:
+		magic = f.readUInt()
+		if magic != 1213416781:
+			noesis.messagePrompt("Not a MESH file.\nAborting...")
+			return 0		
+		bonesOffs = readUIntAt(f, 48)
+		if bonesOffs > 0:
+			bDoSkin = True
 	
 	if not bReWrite:
 		if newMeshName != None:
@@ -2821,6 +2825,10 @@ def meshWriteModel(mdl, bs):
 	#OLD WAY (reading source file, no rewrite):
 	#====================================================================
 	if not bReWrite:
+		#if not f:
+		#	newMesh = rapi.loadIntoByteArray(newMeshName)
+		#	f = NoeBitStream(newMesh)
+			
 		f.seek(18)
 		if sGameName == "RE7":
 			f.seek(14)
