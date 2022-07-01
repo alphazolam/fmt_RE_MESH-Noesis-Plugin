@@ -1,6 +1,6 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.9994 (June 30 2022)
-#Authors: alphaZomega, originally by Gh0stblade 
+#v2.99941 (July 1 2022)
+#Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
 #Options: These are global options that change or enable/disable certain features
@@ -50,7 +50,7 @@ bAlwaysRewrite				= False					#Always try to rewrite the meshfile on export
 bAlwaysWriteBones			= False					#Always write new skeleton to mesh
 bNormalizeWeights 			= False					#Makes sure that the weights of every vertex add up to 1.0, giving the remainder to the bone with the least influence
 bCalculateBoundingBoxes		= True					#Calculates the bounding box for each bone
-BoundingBoxSize				= 0.01					#With bCalculateBoundingBoxes False, change the size of the bounding boxes created for each rigged bone when exporting with -bones or -rewrite
+BoundingBoxSize				= 1.0					#With bCalculateBoundingBoxes False, change the size of the bounding boxes created for each rigged bone when exporting with -bones or -rewrite
 bRigToCoreBones				= False					#Assign non-matching bones to the hips and spine, when exporting a mesh without -bones or -rewrite
 
 #Import/Export:
@@ -244,8 +244,7 @@ tex_format_list = {
 
 def sort_human(List):
 	convert = lambda text: float(text) if text.isdigit() else text
-	output = sorted(List, key=lambda x: [convert(c) for c in re.split('([-+]?[0-9]*\.?[0-9]*)', x.name)])
-	return output
+	return sorted(List, key=lambda mesh: [convert(c) for c in re.split('([-+]?[0-9]*\.?[0-9]*)', mesh.name)])
 
 class openOptionsDialogWindow:
 	
@@ -1497,8 +1496,8 @@ class meshFile(object):
 		noMDFFound = 0
 		skipPrompt = 0
 		
-		tempGameName = "RE7RT" 		 if sGameName == "RERT" and rapi.getOutputName().find("220128762") else sGameName
-		tempGameName = "MHRSunbreak" if sGameName == "RERT" and rapi.getOutputName().find("2109148288") else sGameName
+		tempGameName = "RE7RT" 		 if sGameName == "RERT" and rapi.getInputName().find("220128762") != -1 else sGameName
+		tempGameName = "MHRSunbreak" if sGameName == "RERT" and rapi.getInputName().find("2109148288") != -1 else sGameName
 		
 		#tempGameName = sGameName
 		modelExt = formats[tempGameName]["modelExt"]
@@ -2550,7 +2549,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.9994 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.99941 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2593,7 +2592,6 @@ def meshWriteModel(mdl, bs):
 	
 	#merge Noesis-split meshes back together:	
 	meshesToExport = sort_human(mdl.meshes) #sort by name (if FBX reorganized) 
-	
 	
 	if meshesToExport[0].name.find("_") == 4:
 		print ("WARNING: Noesis-split meshes detected. Merging meshes back together...")
