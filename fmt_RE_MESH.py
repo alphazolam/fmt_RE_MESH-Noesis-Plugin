@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.99942 (July 1 2022)
+#v2.99943 (July 2 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -540,44 +540,50 @@ def readUIntAt(bs, readAt):
 	
 def readTextureData(texData, mipWidth, mipHeight, format):
 	
+	fmtName = tex_format_list[format] if format in tex_format_list else ""
+	
 	if format == 29 or  format == 28:
-		fmtName = ("r32g32b32a32")
+		#fmtName = ("r32g32b32a32")
 		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r32g32b32a32", 1)
 	elif format == 61:
-		fmtName = ("r8")
+		#fmtName = ("r8")
 		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r8")
 	elif format == 10:
-		fmtName = ("r16g16b16a16")
+		#fmtName = ("r16g16b16a16")
 		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r16g16b16a16")
 	elif format == 2:
-		fmtName = ("r32g32b32a32")
+		#fmtName = ("r32g32b32a32")
 		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r32g32b32a32", 1)
 	#elif format == 28:
 	#	print ("FOURCC_ATI1")
 	#	texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_ATI1)
-	elif format == 71 or format == 72: #ATOS
-		fmtName = ("FOURCC_DXT1")
+	if format == 71 or format == 72: #ATOS
+		#fmtName = ("FOURCC_DXT1")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_DXT1)
-	elif format == 77: #BC3
-		fmtName = ("FOURCC_BC3")
+	elif format == 77 or format == 78 or fmtName.find("BC3") != -1: #BC3
+		#fmtName = ("FOURCC_BC3")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC3)
-	elif format == 80: #BC4 wetmasks
-		fmtName = ("FOURCC_BC4")
+	elif format == 80 or fmtName.find("BC4") != -1: #BC4 wetmasks
+		#fmtName = ("FOURCC_BC4")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC4)
-	elif format == 83: #BC5
-		fmtName = ("FOURCC_BC5")
+	elif format == 83 or fmtName.find("BC5") != -1: #BC5
+		#fmtName = ("FOURCC_BC5")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC5)
 		texData = rapi.imageEncodeRaw(texData, mipWidth, mipHeight, "r16g16")
 		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r16g16")
-	elif format == 95 or format == 96:
-		fmtName = ("FOURCC_BC6H")
+	elif format == 95 or format == 96 or fmtName.find("BC6") != -1:
+		#fmtName = ("FOURCC_BC6H")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC6H)
-	elif format == 98 or format == 99:
+	elif format == 98 or format == 99 or fmtName.find("BC7") != -1:
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC7)
-		fmtName = ("FOURCC_BC7")
+		#fmtName = ("FOURCC_BC7")
+	elif re.search("[RB]\d\d?", fmtName):
+		fmtName = fmtName.split("_")[0].lower()
+		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, fmtName)
 	else:
 		print("Fatal Error: Unsupported texture type: " + str(format))
 		return 0
+	print("Detected texture format:", fmtName)
 	return texData, fmtName
 	
 def texLoadDDS(data, texList):
@@ -2549,7 +2555,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.99942 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.99943 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
