@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.99943 (July 2 2022)
+#v2.9995 (July 28 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -52,10 +52,12 @@ bNormalizeWeights 			= False					#Makes sure that the weights of every vertex ad
 bCalculateBoundingBoxes		= True					#Calculates the bounding box for each bone
 BoundingBoxSize				= 1.0					#With bCalculateBoundingBoxes False, change the size of the bounding boxes created for each rigged bone when exporting with -bones or -rewrite
 bRigToCoreBones				= False					#Assign non-matching bones to the hips and spine, when exporting a mesh without -bones or -rewrite
+bSetNumModels				= True					#Sets the header byte "NumModels" to 3, preventing crashes
 
 #Import/Export:
 bAddBoneNumbers 			= 2						#Adds bone numbers and colons before bone names to indicate if they are active. 0 = Off, 1 = On, 2 = Auto
 bRotateBonesUpright			= False					#Rotates bones to be upright for editing and then back to normal for exporting
+bReadGroupIds				= True					#Import/Export with the GroupID as the MainMesh number
 
 from inc_noesis import *
 import math
@@ -65,6 +67,156 @@ import copy
 import noewin
 from noewin import user32, gdi32, kernel32
 
+
+def registerNoesisTypes():
+
+	def addOptions(handle):
+		noesis.setTypeExportOptions(handle, "-noanims -notex")
+		noesis.addOption(handle, "-bones", "Write new skeleton on export", 0)
+		noesis.addOption(handle, "-rewrite", "Rewrite submeshes and materials structure", 0)
+		noesis.addOption(handle, "-flip", "Reverse handedness from DirectX to OpenGL", 0)
+		noesis.addOption(handle, "-bonenumbers", "Add bone numbers to imported bones", 0)
+		noesis.addOption(handle, "-meshfile", "Export using a given source mesh filename", noesis.OPTFLAG_WANTARG)
+		noesis.addOption(handle, "-b", "Run as a batch process", 0)
+		noesis.addOption(handle, "-adv", "Show Advanced Export Options window", 0)
+		return handle
+
+	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2010231143;.2101050001;.2109108288;.2109148288;.220128762;.32;.NewMesh")
+	noesis.setHandlerTypeCheck(handle, meshCheckType)
+	noesis.setHandlerLoadModel(handle, meshLoadModel)
+	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
+	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
+	
+	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.34;.35")
+	noesis.setHandlerTypeCheck(handle, texCheckType)
+	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
+
+	handle = noesis.register("RE Engine UVS [PC]", ".5;.7")
+	noesis.setHandlerTypeCheck(handle, UVSCheckType)
+	noesis.setHandlerLoadModel(handle, UVSLoadModel)
+
+	if bRE2Export:
+		handle = noesis.register("RE2 Remake Texture [PC]", ".10")
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
+		handle = noesis.register("RE2 MESH", (".1808312334"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+		
+	if bRE3Export:
+		handle = noesis.register("RE3 Remake Texture [PC]", ".190820018")
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
+		handle = noesis.register("RE3 MESH", (".1902042334"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+	
+	#fbxskel export is disabled
+	#handle = noesis.register("fbxskel", (".fbxskel.3")) 
+	#noesis.setHandlerWriteModel(handle, skelWriteFbxskel)
+	#noesis.setTypeExportOptions(handle, "-noanims -notex")
+		
+	if bDMCExport:
+		handle = noesis.register("Devil May Cry 5 Texture [PC]", ".11")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
+		handle = noesis.register("DMC5 MESH", (".1808282334"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+		
+	if bREVExport or bRE8Export:
+		handle = noesis.register("RE8 / ReVerse Texture [PC]", ".30")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
+		
+	if bREVExport:
+		handle = noesis.register("ReVerse MESH", (".2010231143"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+		
+	if bRE8Export:
+		handle = noesis.register("RE8 MESH", (".2101050001"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+		
+	if bMHRiseExport or bMHRiseSunbreakExport:
+		handle = noesis.register("MHRise Texture [PC]", ".28;.stm")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
+		if bMHRiseExport:
+			handle = noesis.register("MHRise MESH", (".2008058288"))
+			noesis.setHandlerTypeCheck(handle, meshCheckType)
+			noesis.setHandlerWriteModel(handle, meshWriteModel)
+			addOptions(handle)
+		if bMHRiseSunbreakExport:
+			handle = noesis.register("MHRise Sunbreak MESH", (".2109148288"))
+			noesis.setHandlerTypeCheck(handle, meshCheckType)
+			noesis.setHandlerWriteModel(handle, meshWriteModel)
+			addOptions(handle)
+		
+		
+	if bRE7Export:
+		handle = noesis.register("Resident Evil 7 Texture [PC]", ".8")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
+		#RE7 MESH support is disabled for this version
+		'''handle = noesis.register("RE7 MESH", (".32"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)'''
+	if bRayTracingExport:
+		handle = noesis.register("RE2,3 RayTracing Texture [PC]", ".34")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
+		handle = noesis.register("RE7 RayTracing Texture [PC]", ".35")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
+		handle = noesis.register("RE2+3 RayTracing MESH", (".2109108288"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+		handle = noesis.register("RE7 RayTracing MESH", (".220128762"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+		
+	noesis.logPopup()
+	return 1
+
+def meshCheckType(data):
+	bs = NoeBitStream(data)
+	magic = bs.readUInt()
+	
+	#stream = os.popen('echo Returned output')
+	#output = stream.read()
+	#print(output)
+	
+	if magic == 0x4853454D:
+		return 1
+	else: 
+		print("Fatal Error: Unknown file magic: " + str(hex(magic) + " expected 'MESH'!"))
+		return 0
+
+def texCheckType(data):
+	bs = NoeBitStream(data)
+	magic = bs.readUInt()
+	if magic == 0x00584554:
+		return 1
+	else: 
+		print("Fatal Error: Unknown file magic: " + str(hex(magic) + " expected TEX!"))
+		return 0
+
+def UVSCheckType(data):
+	bs = NoeBitStream(data)
+	magic = bs.readUInt()
+	if magic == 1431720750:
+		return 1
+	else: 
+		print("Fatal Error: Unknown file magic: " + str(hex(magic) + " expected ' SVU'!"))
+		return 0
 
 #Default global variables for internal use:
 sGameName = "RE2"
@@ -261,6 +413,7 @@ class openOptionsDialogWindow:
 		self.doCancel = True
 		self.failed = False
 		self.indices = []
+		self.uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
 		
 	def setWidthAndHeight(self, width=None, height=None):
 		self.width = width or self.width
@@ -301,6 +454,26 @@ class openOptionsDialogWindow:
 			self.clearComboBoxList()
 			self.sourceList = getSameExtFilesInDir(self.filepath)
 			self.setComboBoxList(self.meshFileList, self.filepath)
+			
+	def inputFloatEditBox(self, noeWnd, controlId, wParam, lParam):
+		self.uknFloatText = self.uknFloats0.getText()
+		self.uknFloats0.setText(self.uknFloatText)
+		self.uknFloats[0] = float(self.uknFloatText)
+		
+	def inputFloat1EditBox(self, noeWnd, controlId, wParam, lParam):
+		self.uknFloatText = self.uknFloats1.getText()
+		self.uknFloats1.setText(self.uknFloatText)
+		self.uknFloats[1] = float(self.uknFloatText)
+		
+	def inputFloat2EditBox(self, noeWnd, controlId, wParam, lParam):
+		self.uknFloatText = self.uknFloats2.getText()
+		self.uknFloats2.setText(self.uknFloatText)
+		self.uknFloats[2] = float(self.uknFloatText)
+		
+	def inputFloat3EditBox(self, noeWnd, controlId, wParam, lParam):
+		self.uknFloatText = self.uknFloats3.getText()
+		self.uknFloats3.setText(self.uknFloatText)
+		self.uknFloats[3] = float(self.uknFloatText)
 	
 	def selectTexListItem(self, noeWnd, controlId, wParam, lParam):
 		self.currentIdx = self.texType.getSelectionIndex()
@@ -343,6 +516,7 @@ class openOptionsDialogWindow:
 		width = width or self.width
 		height = height or self.height
 		if self.create(width, height):
+			self.noeWnd.setFont("Futura", 14)
 			self.noeWnd.createStatic("Export Over Mesh", 5, 5, 140, 20)
 			#index = self.noeWnd.createEditBox(5, 25, width-20, 20, self.filepath, self.inputMeshFileEditBox)
 			#self.meshFile = self.noeWnd.getControlByIndex(index)
@@ -356,6 +530,16 @@ class openOptionsDialogWindow:
 				self.noeWnd.createButton("Export New Bones", width-326, 85, 130, 30, self.openOptionsButtonExportBones)
 			self.noeWnd.createButton("Rewrite", width-186, 85, 80, 30, self.openOptionsButtonRewrite)
 			self.noeWnd.createButton("Cancel", width-96, 85, 80, 30, self.openOptionsButtonCancel)
+			
+			'''index = self.noeWnd.createEditBox(5, 125, 100, 30, str(self.uknFloats[0]), self.inputFloatEditBox, False)
+			self.uknFloats0 = self.noeWnd.getControlByIndex(index)
+			index = self.noeWnd.createEditBox(105, 125, 100, 30, str(self.uknFloats[1]), self.inputFloat1EditBox, False)
+			self.uknFloats1 = self.noeWnd.getControlByIndex(index)
+			index = self.noeWnd.createEditBox(205, 125, 100, 30, str(self.uknFloats[2]), self.inputFloat2EditBox, False)
+			self.uknFloats2 = self.noeWnd.getControlByIndex(index)
+			index = self.noeWnd.createEditBox(305, 125, 100, 30, str(self.uknFloats[3]), self.inputFloat3EditBox, False)
+			self.uknFloats3 = self.noeWnd.getControlByIndex(index)'''
+			
 			self.noeWnd.doModal()
 		else:
 			print("Failed to create Noesis Window")
@@ -381,155 +565,6 @@ class openOptionsDialogWindow:
 		else:
 			print("Failed to create Noesis Window")
 			self.failed = True
-
-def registerNoesisTypes():
-
-	def addOptions(handle):
-		noesis.setTypeExportOptions(handle, "-noanims -notex")
-		noesis.addOption(handle, "-bones", "Write new skeleton on export", 0)
-		noesis.addOption(handle, "-rewrite", "Rewrite submeshes and materials structure", 0)
-		noesis.addOption(handle, "-flip", "Reverse handedness from DirectX to OpenGL", 0)
-		noesis.addOption(handle, "-bonenumbers", "Add bone numbers to imported bones", 0)
-		noesis.addOption(handle, "-meshfile", "Reverse handedness from DirectX to OpenGL", noesis.OPTFLAG_WANTARG)
-		noesis.addOption(handle, "-b", "Run as a batch process", 0)
-		return handle
-
-	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2010231143;.2101050001;.2109108288;.2109148288;.220128762;.32;.NewMesh")
-	noesis.setHandlerTypeCheck(handle, meshCheckType)
-	noesis.setHandlerLoadModel(handle, meshLoadModel)
-	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
-	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
-	
-	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.34;.35")
-	noesis.setHandlerTypeCheck(handle, texCheckType)
-	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
-
-	handle = noesis.register("RE Engine UVS [PC]", ".5;.7")
-	noesis.setHandlerTypeCheck(handle, UVSCheckType)
-	noesis.setHandlerLoadModel(handle, UVSLoadModel)
-
-	if bRE2Export:
-		handle = noesis.register("RE2 Remake Texture [PC]", ".10")
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
-		handle = noesis.register("RE2 MESH", (".1808312334"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-		
-	if bRE3Export:
-		handle = noesis.register("RE3 Remake Texture [PC]", ".190820018")
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
-		handle = noesis.register("RE3 MESH", (".1902042334"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-	
-	#fbxskel export is disabled
-	#handle = noesis.register("fbxskel", (".fbxskel.3")) 
-	#noesis.setHandlerWriteModel(handle, skelWriteFbxskel)
-	#noesis.setTypeExportOptions(handle, "-noanims -notex")
-		
-	if bDMCExport:
-		handle = noesis.register("Devil May Cry 5 Texture [PC]", ".11")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
-		handle = noesis.register("DMC5 MESH", (".1808282334"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-		
-	if bREVExport or bRE8Export:
-		handle = noesis.register("RE8 / ReVerse Texture [PC]", ".30")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		
-	if bREVExport:
-		handle = noesis.register("ReVerse MESH", (".2010231143"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-		
-	if bRE8Export:
-		handle = noesis.register("RE8 MESH", (".2101050001"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-		
-	if bMHRiseExport or bMHRiseSunbreakExport:
-		handle = noesis.register("MHRise Texture [PC]", ".28;.stm")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		if bMHRiseExport:
-			handle = noesis.register("MHRise MESH", (".2008058288"))
-			noesis.setHandlerTypeCheck(handle, meshCheckType)
-			noesis.setHandlerWriteModel(handle, meshWriteModel)
-			addOptions(handle)
-		if bMHRiseSunbreakExport:
-			handle = noesis.register("MHRise Sunbreak MESH", (".2109148288"))
-			noesis.setHandlerTypeCheck(handle, meshCheckType)
-			noesis.setHandlerWriteModel(handle, meshWriteModel)
-			addOptions(handle)
-		
-		
-	if bRE7Export:
-		handle = noesis.register("Resident Evil 7 Texture [PC]", ".8")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
-		#RE7 MESH support is disabled for this version
-		'''handle = noesis.register("RE7 MESH", (".32"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)'''
-	if bRayTracingExport:
-		handle = noesis.register("RE2,3 RayTracing Texture [PC]", ".34")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		handle = noesis.register("RE7 RayTracing Texture [PC]", ".35")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		handle = noesis.register("RE2+3 RayTracing MESH", (".2109108288"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-		handle = noesis.register("RE7 RayTracing MESH", (".220128762"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-		
-	noesis.logPopup()
-	return 1
-
-def meshCheckType(data):
-	bs = NoeBitStream(data)
-	magic = bs.readUInt()
-	
-	#stream = os.popen('echo Returned output')
-	#output = stream.read()
-	#print(output)
-	
-	if magic == 0x4853454D:
-		return 1
-	else: 
-		print("Fatal Error: Unknown file magic: " + str(hex(magic) + " expected 'MESH'!"))
-		return 0
-
-def texCheckType(data):
-	bs = NoeBitStream(data)
-	magic = bs.readUInt()
-	if magic == 0x00584554:
-		return 1
-	else: 
-		print("Fatal Error: Unknown file magic: " + str(hex(magic) + " expected TEX!"))
-		return 0
-
-def UVSCheckType(data):
-	bs = NoeBitStream(data)
-	magic = bs.readUInt()
-	if magic == 1431720750:
-		return 1
-	else: 
-		print("Fatal Error: Unknown file magic: " + str(hex(magic) + " expected ' SVU'!"))
-		return 0
 
 def readUIntAt(bs, readAt):
 	pos = bs.tell()
@@ -1487,6 +1522,7 @@ class meshFile(object):
 		self.inFile = NoeBitStream(data)
 		self.boneList = []
 		self.matNames = []
+		self.groupIDs = []
 		self.matHashes = []
 		self.matList = []
 		self.texList = []
@@ -1982,6 +2018,8 @@ class meshFile(object):
 		if sGameName != "RE7":
 			topologyOffs = bs.readUInt64()
 			
+		value = (myDict["value"] if "value" in myDict else {}) if 'myDict' in locals() else {}
+			
 		bShapesHdrOffs = bs.readUInt64()
 		floatsHdrOffs = bs.readUInt64()
 		vBuffHdrOffs = bs.readUInt64()
@@ -2058,7 +2096,8 @@ class meshFile(object):
 		vertexBuffer = bs.readBytes(vertBuffSize)
 		submeshDataArr = []
 		
-		if LOD1Offs:			
+		if LOD1Offs:	
+			
 			bs.seek(LOD1Offs + 48 + 16) #unknown floats and bounding box
 			#print(bs.tell())
 			if sGameName != "RERT" and sGameName != "REVerse" and sGameName != "RE8" and sGameName != "MHRise":
@@ -2173,11 +2212,10 @@ class meshFile(object):
 						rot_mat = NoeMat43(((1, 0, 0), (0, 0, 1), (0, -1, 0), (0, 0, 0)))
 						for bone in self.boneList: 
 							bone.setMatrix( (bone.getMatrix().inverse() * rot_mat).inverse()) 	#rotate upright in-place
-						
 				else:
 					bDoSkin = False
 			
-			print(offsetInfo)
+			#print(offsetInfo)
 			for i in range(countArray[0]): # LODGroups
 				meshVertexInfo = []
 				ctx = rapi.rpgCreateContext()
@@ -2195,27 +2233,31 @@ class meshFile(object):
 				
 				for j in range(numOffsets): # MainMeshes
 					bs.seek(meshOffsetInfo[j])
-					meshVertexInfo.append([bs.readUByte(), bs.readUByte(), bs.readUShort(), bs.readUInt(), bs.readUInt(), bs.readUInt()])
+					meshVertexInfo.append([bs.readUByte(), bs.readUByte(), bs.readUShort(), bs.readUInt(), bs.readUInt(), bs.readUInt()]) #GroupID, NumMesh, unused, unused, numVerts, numFaces
+					self.groupIDs.append(meshVertexInfo[len(meshVertexInfo)-1][0])
 					submeshData = []
 					for k in range(meshVertexInfo[j][1]):
 						if sGameName == "RERT" or sGameName == "REVerse" or sGameName == "MHRise" or sGameName == "RE8":
-							submeshData.append([bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt64()])
+							submeshData.append([bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt64(), self.groupIDs[len(self.groupIDs)-1]]) 
 						else:
-							submeshData.append([bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt()]) #0 MaterialID, 1 faceCount, 2 indexBufferStartIndex, 3 vertexStartIndex
+							submeshData.append([bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt(), self.groupIDs[len(self.groupIDs)-1]]) #0 MaterialID, 1 faceCount, 2 indexBufferStartIndex, 3 vertexStartIndex
 					
 					submeshDataArr.append(submeshData)
 					
 					for k in range(meshVertexInfo[j][1]): # Submeshes
 						
+						mainMeshNo = self.groupIDs[len(self.groupIDs)-1] if bReadGroupIds else j+1
+						mainMeshStr = "_Group_" if bReadGroupIds else "_MainMesh_" if not bShorterNames else "_Main_"
+						
 						if bUseOldNamingScheme:
-							meshName = "LODGroup_" + str(i+1) + "_MainMesh_" + str(j+1) + "_SubMesh_" + str(submeshData[k][0]+1)
+							meshName = "LODGroup_" + str(i+1) + mainMeshStr + str(mainMeshNo) + "_SubMesh_" + str(submeshData[k][0]+1)
 						else:
 							if bRenameMeshesToFilenames:
-								meshName = os.path.splitext(rapi.getLocalFileName(sInputName))[0].replace(".mesh", "") + "_" + str(j+1) + "_" + str(k+1)
+								meshName = os.path.splitext(rapi.getLocalFileName(sInputName))[0].replace(".mesh", "") + "_" + str(mainMeshNo) + "_" + str(k+1)
 							elif bShorterNames:
-								meshName = "LOD_" + str(i+1) + "_Main_" + str(j+1) + "_Sub_" + str(k+1)
+								meshName = "LOD_" + str(i+1) + mainMeshStr + str(mainMeshNo) + "_Sub_" + str(k+1)
 							else:
-								meshName = "LODGroup_" + str(i+1) + "_MainMesh_" + str(j+1) + "_SubMesh_" + str(k+1)
+								meshName = "LODGroup_" + str(i+1) + mainMeshStr + str(mainMeshNo) + "_SubMesh_" + str(k+1)
 							
 						rapi.rpgSetName(meshName)
 						if bRenameMeshesToFilenames: 
@@ -2241,11 +2283,13 @@ class meshFile(object):
 							if bLoadedMats:
 								print ("WARNING: " + meshName + "\'s material \"" + names[nameRemapTable[submeshData[k][0]]] + "\" hash " + str(matHash) + " not found in MDF!")
 							self.matNames.append(names[nameRemapTable[submeshData[k][0]]])
+							
 							matName = self.matNames[len(self.matNames)-1]
 										
 						rapi.rpgSetMaterial(matName)
 						rapi.rpgSetPosScaleBias((fDefaultMeshScale, fDefaultMeshScale, fDefaultMeshScale), (0, 0, 0))
 						if bImportMaterialNames:
+							#rapi.rpgSetName(meshName + "__" + matName + "__" + str(submeshData[k][len(submeshData[k])-1]))
 							rapi.rpgSetName(meshName + "__" + matName)
 						
 						if sGameName == "RE7":
@@ -2411,7 +2455,7 @@ def getExportName(fileName, exportType=".mesh"):
 		newMeshName = fileName
 	
 	if bNewExportMenu:
-		openOptionsDialog = openOptionsDialogWindow(1000, 165, {"filepath":newMeshName, "exportType":exportType}) #int(len(newMeshName)*7.5)
+		openOptionsDialog = openOptionsDialogWindow(1000, 195, {"filepath":newMeshName, "exportType":exportType}) #int(len(newMeshName)*7.5)
 		openOptionsDialog.createMeshWindow()
 		newMeshName = openOptionsDialog.filepath or newMeshName
 		if openOptionsDialog.doCancel:
@@ -2522,10 +2566,11 @@ def skelWriteFbxskel(mdl, bs):
 
 '''MESH EXPORT ========================================================================================================================================================================'''
 def meshWriteModel(mdl, bs):
-	global sExportExtension, w1, w2, bWriteBones, bReWrite, bRigToCoreBones, bAddBoneNumbers, sGameName #doLOD
+	global sExportExtension, w1, w2, bWriteBones, bReWrite, bRigToCoreBones, bAddBoneNumbers, sGameName, bNewExportMenu #doLOD
 	
 	bWriteBones = noesis.optWasInvoked("-bones")
 	bReWrite = noesis.optWasInvoked("-rewrite")
+	bNewExportMenu = noesis.optWasInvoked("-adv") or bNewExportMenu
 	
 	w1 = 127; w2 = -128
 	if noesis.optWasInvoked("-flip"): 
@@ -2555,7 +2600,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.99943 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.9995 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -adv = Show Advanced Options dialog window\n -b = Batch conversion mode\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2733,9 +2778,12 @@ def meshWriteModel(mdl, bs):
 		fileName = None
 		if noesis.optWasInvoked("-meshfile"):
 			newMeshName = noesis.optGetArg("-meshfile")
-			newMesh = rapi.loadIntoByteArray(newMeshName)
-			f = NoeBitStream(newMesh)
-			return newMeshName
+			if noesis.optWasInvoked("-adv"):
+				newMeshName = getExportName(newMeshName)
+			if newMeshName:
+				newMesh = rapi.loadIntoByteArray(newMeshName)
+				f = NoeBitStream(newMesh)
+				return newMeshName
 		else:
 			newMeshName = getExportName(fileName)
 		if newMeshName == None:
@@ -2755,6 +2803,8 @@ def meshWriteModel(mdl, bs):
 				showOptionsDialog()
 	
 	if bReWrite:
+		if noesis.optWasInvoked("-adv"): # and noesis.optWasInvoked("-noprompt"):
+			newMeshName = getExportName(rapi.getOutputName() or None)
 		checkReWriteMeshes()
 	else:
 		showOptionsDialog()
@@ -2990,15 +3040,17 @@ def meshWriteModel(mdl, bs):
 				for smc in range(meshVertexInfo[mmc][1]):
 					matID = f.readUInt() + 1
 					bFind = 0
+					sourceGroupID = meshVertexInfo[len(meshVertexInfo)-1][0] if bReadGroupIds else (mmc+1)
 					for s in range(len(objToExport)):
 						#print (meshesToExport[objToExport[s]].name)
 						sName = meshesToExport[objToExport[s]].name.split('_')
-						if int(sName[1]) == (ldc+1) and int(sName[3]) == (mmc+1) and ((not bUseOldNamingScheme and int(sName[5]) == (smc+1)) or (bUseOldNamingScheme and int(sName[5]) == (matID))):
+						thisGroupID = sName[3]
+						if int(sName[1]) == (ldc+1) and int(thisGroupID) == (sourceGroupID) and ((not bUseOldNamingScheme and int(sName[5]) == (smc+1)) or (bUseOldNamingScheme and int(sName[5]) == (matID))):
 							submeshes.append(copy.copy(meshesToExport[objToExport[s]]))
 							bFind = 1							
 							break
 					if not bFind:  #create invisible placeholder submesh
-						blankMeshName = "LODGroup_" + str(ldc+1) + "_MainMesh_" + str(mmc+1) + "_SubMesh_" + str(smc+1)
+						blankMeshName = "LODGroup_" + str(ldc+1) + "_MainMesh_" + str(sourceGroupID) + "_SubMesh_" + str(smc+1)
 						blankTangent = NoeMat43((NoeVec3((0,0,0)), NoeVec3((0,0,0)), NoeVec3((0,0,0)), NoeVec3((0,0,0)))) 
 						blankWeight = NoeVertWeight([0,0,0,0,0,0,0,0], [1,0,0,0,0,0,0,0])
 						blankMesh = NoeMesh([0, 1, 2], [NoeVec3((0.00000000001,0,0)), NoeVec3((0,0.00000000001,0)), NoeVec3((0,0,0.00000000001))], blankMeshName, blankMeshName, -1, -1) #positions and faces
@@ -3054,43 +3106,51 @@ def meshWriteModel(mdl, bs):
 	if bReWrite: #save new mesh order	
 		bDoUV2 = True
 		#prepare new submesh order:
-		newMainMeshes = []; newSubMeshes = []; newMaterialNames = []
+		newMainMeshes = []; newSubMeshes = []; newMaterialNames = []; 
 		indicesBefore = 0; vertsBefore = 0; mmIndCount = 0; mmVertCount = 0
 		lastMainMesh = submeshes[0].name.split('_')[3]
-		splitName = mesh.name.split('_')
 		meshOffsets= []
 		
-		for mesh in submeshes:
-			mat = mesh.name.split('__', 1)[1]
+		
+		for i, mesh in enumerate(submeshes):
+			mat = mesh.name.split('__')[1]
 			if mat not in newMaterialNames:
 				newMaterialNames.append(mat)
+				
 				
 		numMats = len(newMaterialNames)
 		print ("\nMESH Material Count:", numMats)
 		
 		for i, mesh in enumerate(submeshes):
-			print(mesh.name)
-			try:
-				if len(splitName) <= 6:
-					bReWrite = False
-					break
-				else:
-					newMaterialID = newMaterialNames.index(mesh.name.split('__', 1)[1])
-					if mesh.name.split('_')[3] != lastMainMesh:
-						newMainMeshes.append((newSubMeshes, mmVertCount, mmIndCount))
-						newSubMeshes = []; mmIndCount = 0; mmVertCount = 0
-						lastMainMesh = mesh.name.split('_')[3]
-						 
-					newSubMeshes.append((newMaterialID, len(mesh.indices) , vertsBefore, indicesBefore))
-					vertsBefore += len(mesh.positions)
-					mmVertCount += len(mesh.positions)
-					indicesBefore += len(mesh.indices)
-					mmIndCount += len(mesh.indices)
-					if i == len(submeshes)-1:
-						newMainMeshes.append((newSubMeshes, mmVertCount, mmIndCount))
-			except:
-				print("Failed to parse mesh name", mesh.name)
+			splitName = mesh.name.split('_')
+			splitMatNames = mesh.name.split('__')
+			key = len(newMainMeshes)
+			newGroupID = splitName[3]
+			#try:
+			if len(splitName) <= 6:
+				bReWrite = False
+				break
+			else:
+				newMaterialID = newMaterialNames.index(splitMatNames[1])
+				if newGroupID != lastMainMesh:
+					newMainMesh = (newSubMeshes, mmVertCount, mmIndCount, int(lastMainMesh))
+					newMainMeshes.append(newMainMesh)
+					newSubMeshes = []; mmIndCount = 0; mmVertCount = 0
+					lastMainMesh = newGroupID
+					
+				newSubMeshes.append((newMaterialID, len(mesh.indices) , vertsBefore, indicesBefore))
+				vertsBefore += len(mesh.positions)
+				mmVertCount += len(mesh.positions)
+				indicesBefore += len(mesh.indices)
+				mmIndCount += len(mesh.indices)
+				if i == len(submeshes)-1:
+					newMainMesh = (newSubMeshes, mmVertCount, mmIndCount,  int(lastMainMesh))
+					newMainMeshes.append(newMainMesh)
+			#except:
+			#	print("Failed to parse mesh name", mesh.name)
 		
+		#print(newMainMeshes)
+
 		#header:
 		bs.writeUInt(1213416781) #MESH
 		if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
@@ -3130,7 +3190,7 @@ def meshWriteModel(mdl, bs):
 		bs.writeUInt64(0) #Names Address
 		if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
 			bs.writeUInt64(0)
-			
+		
 		bs.writeByte(1) #set to one LODGroup
 		bs.writeByte(len(newMaterialNames)) #mat count
 		bs.writeByte(2) #set to 2 UV channels
@@ -3138,14 +3198,16 @@ def meshWriteModel(mdl, bs):
 		bs.writeUInt(len(submeshes)) #total mesh count
 		bs.writeUInt64(0)
 		
+		#uknFloats = openOptionsDialog.uknFloats if 'openOptionsDialog' in locals() else [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
+		uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
 		if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
-			bs.writeFloat(0.009527391)	#unknown (these values taken from a RE2 model)
-			bs.writeFloat(0.8515151)  	#unknown
-			bs.writeFloat(0.04847997) 	#unknown
-			bs.writeFloat(0.8639101)  	#unknown
+			bs.writeFloat(uknFloats[0])		#unknown (these values taken from a RE2 model)
+			bs.writeFloat(uknFloats[1])  	#unknown
+			bs.writeFloat(uknFloats[2]) 	#unknown
+			bs.writeFloat(uknFloats[3])  	#unknown
 		else:
-			bs.writeFloat(0.07618849) 	#unknown
-			bs.writeFloat(0.2573551)  	#unknown
+			bs.writeFloat(uknFloats[4]) 	#unknown
+			bs.writeFloat(uknFloats[5])  	#unknown
 			
 		#Prepare for bounding box calc:	
 		mainBBOffs = bs.tell()
@@ -3172,11 +3234,12 @@ def meshWriteModel(mdl, bs):
 		
 		while(bs.tell() % 16 != 0):
 			bs.writeByte(0)
-		
+
 		#write new MainMeshes:
 		for i, mm in enumerate(newMainMeshes):
+			
 			newMMOffset = bs.tell()
-			bs.writeByte(i) #Group ID
+			bs.writeByte(mm[len(mm)-1]) #Group ID
 			bs.writeByte(len(mm[0])) #Submesh count
 			bs.writeShort(0)
 			bs.writeInt(0)
@@ -3184,11 +3247,12 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(mm[2]) #MainMesh vertex count
 			meshVertexInfo.append([i, len(mm[0]), 0, 0, mm[1], mm[2]])
 			
-			for j, sm in enumerate(mm[0]):
-				bs.writeUInt(sm[0])
-				bs.writeUInt(sm[1])
-				bs.writeUInt(sm[2])
-				bs.writeUInt(sm[3])
+			for j, submesh in enumerate(mm[0]):
+				print ("New mainmesh GroupID", mm[len(mm)-1], "submesh", j)
+				bs.writeUInt(submesh[0])
+				bs.writeUInt(submesh[1])
+				bs.writeUInt(submesh[2])
+				bs.writeUInt(submesh[3])
 				if sGameName != "RE7" and sGameName != "RE2" and sGameName != "RE3" and sGameName != "DMC5":
 					bs.writeUInt64(0)
 			pos = bs.tell()
@@ -3209,7 +3273,7 @@ def meshWriteModel(mdl, bs):
 		vertElemCount += 1
 	if bDoColors:
 		vertElemCount += 1
-
+		
 	#save new skeleton:
 	if (bReWrite or bWriteBones): 
 		if bDoSkin:
@@ -3492,7 +3556,7 @@ def meshWriteModel(mdl, bs):
 	submeshFaceStride = []
 	submeshFaceSize = []
 	boneWeightBBs = {}
-	
+
 	#Write vertex data
 	vertexPosStart = bs.tell()
 	if sGameName == "RE7":
@@ -3502,15 +3566,15 @@ def meshWriteModel(mdl, bs):
 			for v in range(len(mesh.positions)):
 			
 				bs.writeBytes((mesh.positions[v] * 0.01).toBytes())
-				
-				bs.writeByte(int(mesh.tangents[v][0][0] * 127 + 0.5000000001)) #normal
-				bs.writeByte(int(mesh.tangents[v][0][2] * 127 + 0.5000000001))
-				bs.writeByte(int(mesh.tangents[v][0][1] * 127 + 0.5000000001))
+				tangent = mesh.tangents[v]
+				bs.writeByte(int(tangent[0][0] * 127 + 0.5000000001)) #normal
+				bs.writeByte(int(tangent[0][2] * 127 + 0.5000000001))
+				bs.writeByte(int(tangent[0][1] * 127 + 0.5000000001))
 				bs.writeByte(0)
-				bs.writeByte(int(mesh.tangents[v][2][0] * 127 + 0.5000000001)) #bitangent
-				bs.writeByte(int(mesh.tangents[v][2][1] * 127 + 0.5000000001))
-				bs.writeByte(int(mesh.tangents[v][2][2] * 127 + 0.5000000001))
-				TNW = dot(cross(mesh.tangents[v][0], mesh.tangents[v][1]), mesh.tangents[v][2])
+				bs.writeByte(int(tangent[2][0] * 127 + 0.5000000001)) #bitangent
+				bs.writeByte(int(tangent[2][1] * 127 + 0.5000000001))
+				bs.writeByte(int(tangent[2][2] * 127 + 0.5000000001))
+				TNW = dot(cross(tangent[0], tangent[1]), tangent[2])
 				if (TNW < 0.0):
 					bs.writeByte(w1)
 				else:
@@ -3531,19 +3595,19 @@ def meshWriteModel(mdl, bs):
 					total = 0
 					tupleList = []
 					weightList = []
-					for idx in range(len(mesh.weights[v].weights)):
-						weightList.append(round(mesh.weights[v].weights[idx] * 255.0))
+					for idx, weight in enumerate(len(mesh.weights[v].weights)):
+						weightList.append(round(weight * 255.0))
 						total += weightList[idx]
 					if bNormalizeWeights and total != 255:
 						weightList[0] += 255 - total
 						print ("Normalizing vertex weight", mesh.name, "vertex", v,",", total)
 							
-					for idx in range(len(mesh.weights[v].weights)):
+					for idx, weight in enumerate(len(mesh.weights[v].weights)):
 						if idx > 8:
 							print ("Warning: ", mesh.name, "vertex", v,"exceeds the vertex weight limit of 8!", )
 							break
 						elif mesh.weights[v].weights[idx] != 0:
-							tupleList.append((weightList[idx], mesh.weights[v].indices[idx]))
+							tupleList.append((weightList[idx], weight))
 							
 					tupleList = sorted(tupleList, reverse=True) #sort in ascending order
 					
@@ -3814,9 +3878,10 @@ def meshWriteModel(mdl, bs):
 		bs.seek(56)
 		bs.writeUInt(0)
 		
-	#set unknown flag to 3 (else crash)
-	bs.seek(16)
-	bs.writeUByte(3)
+	#set NumModels flag to 3 (else crash)
+	if bSetNumModels or bReWrite:
+		bs.seek(16)
+		bs.writeUByte(3)
 	
 	#remove blendshapes offsets
 	bs.seek(64)

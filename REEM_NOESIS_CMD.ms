@@ -396,6 +396,7 @@
 			checkbox chk_flipHandedness "DirectX handedness" checked:true align:#left
 			checkbox chk_writeBones "Write skeleton" checked:false align:#left
 			checkbox chk_reWrite "ReWrite MESH" checked:false align:#left
+			checkbox chk_showOptions "Show Options Dialog" checked:false align:#left
 			dropdownlist list_gameSelection items:gamesList width:110 height:24 align:#center
 			label lbl_currentExt ".mesh.2109108288" align:#center 
 			
@@ -834,6 +835,7 @@
 							+ (if chk_writeBones.checked then " -bones" else "") \
 							+ (if not chk_flipHandedness.checked then " -flip" else "") \
 							+ (if chk_bnNumbers.checked then " -bonenumbers" else "") \
+							+ (if chk_showOptions.checked then " -adv" else "") \  
 							+ (if chk_reWrite.checked then " -rewrite" else (" -meshfile \"" + cmd + "\"")) \ 
 						)
 						
