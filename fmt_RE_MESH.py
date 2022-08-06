@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.9995 (July 28 2022)
+#v2.9996 (August 5 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -2600,7 +2600,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.9995 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -adv = Show Advanced Options dialog window\n -b = Batch conversion mode\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.9996 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -adv = Show Advanced Options dialog window\n -b = Batch conversion mode\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2875,8 +2875,8 @@ def meshWriteModel(mdl, bs):
 			bAddNumbers = False
 			for i, bone in enumerate(mdl.bones):
 				if len(newSkinBoneMap) < 256:
-					newSkinBoneMap.append(i)		
-					
+					newSkinBoneMap.append(i)
+
 	newBBOffs = 0
 	#OLD WAY (reading source file, no rewrite):
 	#====================================================================
@@ -3479,7 +3479,6 @@ def meshWriteModel(mdl, bs):
 				bs.writeFloat(1)
 				for j in range(3): bs.writeFloat(BoundingBoxSize)
 				bs.writeFloat(1)
-				
 			newVertBuffHdrOffs = bs.tell()
 			
 			#fix bones header
@@ -3513,7 +3512,7 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt64(newVertBuffHdrOffs)
 			bs.seek(32,1)
 		bs.writeUInt64(newNamesOffs)
-		
+
 		#copy + fix vertexBufferHeader
 		bs.seek(newVertBuffHdrOffs)
 		if sGameName == "RE7":
@@ -3548,7 +3547,7 @@ def meshWriteModel(mdl, bs):
 	elif not bReWrite:
 		bs.writeBytes(f.readBytes(vertBuffOffs)) #copy to vertex buffer header
 		newVertBuffHdrOffs = bs.tell()
-		
+
 	vertexStrideStart = 0
 	submeshVertexCount = []
 	submeshVertexStride = []
@@ -3754,16 +3753,18 @@ def meshWriteModel(mdl, bs):
 					for wval in range(len(tupleList)):
 						bs.writeUByte(tupleList[wval][0])
 					bs.seek(pos+16)
-					
+								
 		colorsStart = bs.tell()
 		if bDoColors:
 			for m, mesh in enumerate(submeshes):
 				if bColorsExist:
-					for RGBA in mesh.colors: #write 0's
-						for color in RGBA: 
+					for p, pos in enumerate(mesh.positions):
+						RGBA = mesh.colors[p] if p < len(mesh.colors) else NoeVec4((1.0, 1.0, 1.0, 1.0))
+						for c in range(4): 
+							color = RGBA[c] if c < len(RGBA) else 1.0
 							bs.writeUByte(int(color * 255 + 0.5))
 				else:
-					for pos in mesh.positions:
+					for p, pos in enumerate(mesh.positions):
 						bs.writeInt(-1)
 	vertexDataEnd = bs.tell()
 	
