@@ -1,6 +1,6 @@
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.35
+	--Version: v0.36
 	--Last Release: June 30 2022
 	--Authors: alphaZomega, mariokart64n
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
@@ -381,7 +381,7 @@
 	local currentItemIdx = 1
 	local currentItemIdx2 = 1
 	
-	rollout formNoesisCMD "REEM Noesis 0.35" (
+	rollout formNoesisCMD "REEM Noesis 0.36" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
@@ -394,12 +394,10 @@
 		group "Export" (
 			button btn_export "Export to Game" align:#center
 			checkbox chk_flipHandedness "DirectX handedness" checked:true align:#left
+			checkbox chk_doVFX "Export as VFX Mesh" checked:false align:#left
+			checkbox chk_showOptions "Show Advanced Options" checked:false align:#left
 			checkbox chk_writeBones "Write skeleton" checked:false align:#left
 			checkbox chk_reWrite "ReWrite MESH" checked:false align:#left
-			checkbox chk_showOptions "Show Options Dialog" checked:false align:#left
-			dropdownlist list_gameSelection items:gamesList width:110 height:24 align:#center
-			label lbl_currentExt ".mesh.2109108288" align:#center 
-			
 			--checkbox chk_ReWrite2 "ReWrite 2nd MESH" checked:false align:#left
 			--dropdownlist list_gameSelection2 items:gamesList width:110 height:24 align:#center
 			--label lbl_currentExt2 ".mesh.2109108288" align:#center
@@ -413,6 +411,8 @@
 			button BtnAnimToBlender "Export FBX Animation" align:#center
 		)
 		group "Config" (
+			dropdownlist list_gameSelection items:gamesList width:110 height:24 align:#center
+			label lbl_currentExt ".mesh.2109108288" align:#center 
 			checkbox chk_showPlugOpt  "Show FBX Options" checked:true align:#left
 			checkbox chk_delFBX  "Delete FBX Files" checked:true align:#left
 			checkbox chk_bnNumbers  "Use Bone Numbers" checked:true align:#left
@@ -719,7 +719,7 @@
 								for obj in Objects do (
 									Import_MESH obj[3] obj 
 								)
-							) else print "No Meshes detected"
+							) else print "No Meshes detected. Be sure you have set your MESH extension to the one for your game."
 						)
 					)
 					names_to_objects = undefined
@@ -836,6 +836,7 @@
 							+ (if not chk_flipHandedness.checked then " -flip" else "") \
 							+ (if chk_bnNumbers.checked then " -bonenumbers" else "") \
 							+ (if chk_showOptions.checked then " -adv" else "") \  
+							+ (if chk_doVFX.checked then " -vfx" else "") \  
 							+ (if chk_reWrite.checked then " -rewrite" else (" -meshfile \"" + cmd + "\"")) \ 
 						)
 						

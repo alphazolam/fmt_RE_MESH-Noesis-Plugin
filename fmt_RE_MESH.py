@@ -79,6 +79,7 @@ def registerNoesisTypes():
 		noesis.addOption(handle, "-meshfile", "Export using a given source mesh filename", noesis.OPTFLAG_WANTARG)
 		noesis.addOption(handle, "-b", "Run as a batch process", 0)
 		noesis.addOption(handle, "-adv", "Show Advanced Export Options window", 0)
+		noesis.addOption(handle, "-vfx", "Export as VFX mesh", 0)
 		return handle
 
 	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2010231143;.2101050001;.2109108288;.2109148288;.220128762;.32;.NewMesh")
@@ -222,7 +223,9 @@ def UVSCheckType(data):
 sGameName = "RE2"
 sExportExtension = ".1808312334"
 bWriteBones = False
+bDoVFX = False
 bReWrite = False
+openOptionsDialog = None
 w1 = 127
 w2 = -128
 
@@ -412,12 +415,18 @@ class openOptionsDialogWindow:
 		self.doRewrite = False
 		self.doCancel = True
 		self.failed = False
+		self.doVFX = False
 		self.indices = []
+		self.LODDist = 0.02667995
 		self.uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
 		
 	def setWidthAndHeight(self, width=None, height=None):
 		self.width = width or self.width
 		self.height = height or self.height
+		
+	def openOptionsVFXCheckbox(self, noeWnd, controlId, wParam, lParam):
+		self.doVFX = not self.doVFX
+		self.vfxCheckbox.setChecked(self.doVFX)
 		
 	def openOptionsButtonRewrite(self, noeWnd, controlId, wParam, lParam):
 		self.doCancel = False
@@ -445,6 +454,9 @@ class openOptionsDialogWindow:
 			self.clearComboBoxList()
 			self.sourceList = getSameExtFilesInDir(self.filepath)
 			self.setComboBoxList(self.meshFileList, self.filepath)
+			
+	def openOptionsButtonCancel(self, noeWnd, controlId, wParam, lParam):
+		self.noeWnd.closeWindow()
 	
 	def inputMeshFileEditBox(self, noeWnd, controlId, wParam, lParam):
 		self.meshEditText = self.meshFile.getText()
@@ -456,24 +468,25 @@ class openOptionsDialogWindow:
 			self.setComboBoxList(self.meshFileList, self.filepath)
 			
 	def inputFloatEditBox(self, noeWnd, controlId, wParam, lParam):
-		self.uknFloatText = self.uknFloats0.getText()
-		self.uknFloats0.setText(self.uknFloatText)
-		self.uknFloats[0] = float(self.uknFloatText)
+		self.uknFloats[0] = float(self.uknFloats0.getText())
 		
 	def inputFloat1EditBox(self, noeWnd, controlId, wParam, lParam):
-		self.uknFloatText = self.uknFloats1.getText()
-		self.uknFloats1.setText(self.uknFloatText)
-		self.uknFloats[1] = float(self.uknFloatText)
+		self.uknFloats[1] = float(self.uknFloats1.getText())
 		
 	def inputFloat2EditBox(self, noeWnd, controlId, wParam, lParam):
-		self.uknFloatText = self.uknFloats2.getText()
-		self.uknFloats2.setText(self.uknFloatText)
-		self.uknFloats[2] = float(self.uknFloatText)
+		self.uknFloats[2] = float(self.uknFloats2.getText())
 		
 	def inputFloat3EditBox(self, noeWnd, controlId, wParam, lParam):
-		self.uknFloatText = self.uknFloats3.getText()
-		self.uknFloats3.setText(self.uknFloatText)
-		self.uknFloats[3] = float(self.uknFloatText)
+		self.uknFloats[3] = float(self.uknFloats3.getText())
+		
+	'''def inputFloat4EditBox(self, noeWnd, controlId, wParam, lParam):
+		self.uknFloats[3] = float(self.uknFloats4.getText())
+		
+	def inputFloat5EditBox(self, noeWnd, controlId, wParam, lParam):
+		self.uknFloats[3] = float(self.uknFloats5.getText())'''
+		
+	def inputLODDistEditBox(self, noeWnd, controlId, wParam, lParam):
+		self.LODDist = float(self.LODEditBox.getText())
 	
 	def selectTexListItem(self, noeWnd, controlId, wParam, lParam):
 		self.currentIdx = self.texType.getSelectionIndex()
@@ -516,29 +529,51 @@ class openOptionsDialogWindow:
 		width = width or self.width
 		height = height or self.height
 		if self.create(width, height):
+			row1_y = 0
+			row2_y = 30
+			exportRow_y = 60
+			#row4_y = 100
 			self.noeWnd.setFont("Futura", 14)
-			self.noeWnd.createStatic("Export Over Mesh", 5, 5, 140, 20)
+			
+			#self.noeWnd.createStatic("Export Over Mesh", 5, row1_y, 140, 20)
 			#index = self.noeWnd.createEditBox(5, 25, width-20, 20, self.filepath, self.inputMeshFileEditBox)
 			#self.meshFile = self.noeWnd.getControlByIndex(index)
-			index = self.noeWnd.createComboBox(5, 50, width-20, 20, self.selectSourceListItem, noewin.CBS_DROPDOWNLIST)
+			
+			index = self.noeWnd.createCheckBox("VFX Mesh", 5, row1_y, 80, 30, self.openOptionsVFXCheckbox)
+			self.vfxCheckbox = self.noeWnd.getControlByIndex(index)
+			
+			index = self.noeWnd.createComboBox(5, row2_y, width-20, 20, self.selectSourceListItem, noewin.CBS_DROPDOWNLIST)
 			self.meshFileList = self.noeWnd.getControlByIndex(index)
 			self.setComboBoxList(self.meshFileList, self.filepath)
 			
-			self.noeWnd.createButton("Browse", 5, 85, 80, 30, self.openBrowseMenu)
+			self.noeWnd.createButton("Browse", 5, exportRow_y, 80, 30, self.openBrowseMenu)
 			if rapi.checkFileExists(self.filepath):
-				self.noeWnd.createButton("Export", width-416, 85, 80, 30, self.openOptionsButtonExport)
-				self.noeWnd.createButton("Export New Bones", width-326, 85, 130, 30, self.openOptionsButtonExportBones)
-			self.noeWnd.createButton("Rewrite", width-186, 85, 80, 30, self.openOptionsButtonRewrite)
-			self.noeWnd.createButton("Cancel", width-96, 85, 80, 30, self.openOptionsButtonCancel)
+				self.noeWnd.createButton("Export", width-416, exportRow_y, 80, 30, self.openOptionsButtonExport)
+				self.noeWnd.createButton("Export New Bones", width-326, exportRow_y, 130, 30, self.openOptionsButtonExportBones)
+			self.noeWnd.createButton("Rewrite", width-186, exportRow_y, 80, 30, self.openOptionsButtonRewrite)
+			self.noeWnd.createButton("Cancel", width-96, exportRow_y, 80, 30, self.openOptionsButtonCancel)
 			
-			'''index = self.noeWnd.createEditBox(5, 125, 100, 30, str(self.uknFloats[0]), self.inputFloatEditBox, False)
+			
+			self.noeWnd.createStatic("Rewrite Options:", 450, 100, 140, 20)
+			self.noeWnd.createStatic("Unknown Floats:", 5, 130, 140, 20)
+			index = self.noeWnd.createEditBox(115, 125, 100, 30, str(self.uknFloats[0]), self.inputFloatEditBox, False)
 			self.uknFloats0 = self.noeWnd.getControlByIndex(index)
-			index = self.noeWnd.createEditBox(105, 125, 100, 30, str(self.uknFloats[1]), self.inputFloat1EditBox, False)
+			index = self.noeWnd.createEditBox(215, 125, 100, 30, str(self.uknFloats[1]), self.inputFloat1EditBox, False)
 			self.uknFloats1 = self.noeWnd.getControlByIndex(index)
-			index = self.noeWnd.createEditBox(205, 125, 100, 30, str(self.uknFloats[2]), self.inputFloat2EditBox, False)
+			index = self.noeWnd.createEditBox(315, 125, 100, 30, str(self.uknFloats[2]), self.inputFloat2EditBox, False)
 			self.uknFloats2 = self.noeWnd.getControlByIndex(index)
-			index = self.noeWnd.createEditBox(305, 125, 100, 30, str(self.uknFloats[3]), self.inputFloat3EditBox, False)
-			self.uknFloats3 = self.noeWnd.getControlByIndex(index)'''
+			index = self.noeWnd.createEditBox(415, 125, 100, 30, str(self.uknFloats[3]), self.inputFloat3EditBox, False)
+			self.uknFloats3 = self.noeWnd.getControlByIndex(index)
+			
+			'''if not (sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5"):
+				index = self.noeWnd.createEditBox(515, 125, 100, 30, str(self.uknFloats[4]), self.inputFloat4EditBox, False)
+				self.uknFloats4 = self.noeWnd.getControlByIndex(index)
+				index = self.noeWnd.createEditBox(615, 125, 100, 30, str(self.uknFloats[5]), self.inputFloat5EditBox, False)
+				self.uknFloats5 = self.noeWnd.getControlByIndex(index)'''
+			
+			self.noeWnd.createStatic("LOD0 Distance?:", 775, 130, 140, 20)
+			index = self.noeWnd.createEditBox(885, 125, 100, 30, str(self.LODDist), self.inputLODDistEditBox, False)
+			self.LODEditBox = self.noeWnd.getControlByIndex(index)
 			
 			self.noeWnd.doModal()
 		else:
@@ -2433,7 +2468,7 @@ def getSameExtFilesInDir(filename=None, ext=None):
 	return sourceList
 
 def getExportName(fileName, exportType=".mesh"):
-	global w1, w2, bWriteBones, bReWrite, bRigToCoreBones #, doLOD
+	global w1, w2, bWriteBones, bReWrite, bRigToCoreBones, bDoVFX, openOptionsDialog #, doLOD
 	bReWrite = False; bWriteBones = False; w1 = 127; w2 = -128
 	sourceList = []
 	if fileName == None:
@@ -2460,10 +2495,13 @@ def getExportName(fileName, exportType=".mesh"):
 		newMeshName = openOptionsDialog.filepath or newMeshName
 		if openOptionsDialog.doCancel:
 			newMeshName = None
-		elif openOptionsDialog.doRewrite:
-			newMeshName = newMeshName + " -rewrite"
-		elif openOptionsDialog.doWriteBones:
-			newMeshName = newMeshName + " -bones"
+		else: 
+			if openOptionsDialog.doRewrite:
+				newMeshName = newMeshName + " -rewrite"
+			if openOptionsDialog.doWriteBones:
+				newMeshName = newMeshName + " -bones"
+			if openOptionsDialog.doVFX:
+				newMeshName = newMeshName + " -vfx"
 	else:
 		newMeshName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "Export over " + exportType.upper(), "Choose a " + exportType.upper() + " file to export over", newMeshName, None)
 
@@ -2475,6 +2513,11 @@ def getExportName(fileName, exportType=".mesh"):
 		newMeshName = newMeshName.replace(" -flip", "")
 		print ("Exporting with OpenGL handedness")
 		w1 = -128; w2 = 127
+		
+	if noesis.optWasInvoked("-vfx") or newMeshName.find(" -vfx") != -1:
+		newMeshName = newMeshName.replace(" -vfx", "")
+		bDoVFX = True
+		print ("Exporting VFX mesh")
 	
 	if noesis.optWasInvoked("-bones") or newMeshName.find(" -bones") != -1:
 		newMeshName = newMeshName.replace(" -bones", "")
@@ -2483,7 +2526,7 @@ def getExportName(fileName, exportType=".mesh"):
 		
 	if newMeshName.find(" -rewrite") != -1:
 		newMeshName = newMeshName.replace(" -rewrite", "")
-		print ("Exporting from scratch with new skeleton, Mainmesh and Submesh order...")
+		print ("Exporting with new skeleton, Group and Submesh order...")
 		bReWrite = True
 		bWriteBones = True
 		
@@ -2566,7 +2609,7 @@ def skelWriteFbxskel(mdl, bs):
 
 '''MESH EXPORT ========================================================================================================================================================================'''
 def meshWriteModel(mdl, bs):
-	global sExportExtension, w1, w2, bWriteBones, bReWrite, bRigToCoreBones, bAddBoneNumbers, sGameName, bNewExportMenu #doLOD
+	global sExportExtension, w1, w2, bWriteBones, bReWrite, bRigToCoreBones, bAddBoneNumbers, sGameName, bNewExportMenu, bDoVFX #doLOD
 	
 	bWriteBones = noesis.optWasInvoked("-bones")
 	bReWrite = noesis.optWasInvoked("-rewrite")
@@ -2600,7 +2643,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.9996 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -adv = Show Advanced Options dialog window\n -b = Batch conversion mode\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.9996 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2635,6 +2678,7 @@ def meshWriteModel(mdl, bs):
 	bDoSkin = False
 	bDoColors = False
 	bAddNumbers = False
+	bDoVFX = False
 	numLODs = 1
 	diff = 0	
 	meshVertexInfo = []
@@ -2829,9 +2873,10 @@ def meshWriteModel(mdl, bs):
 	else:
 		print("  No rigging detected")
 		
-	bIsFromFBX = (rapi.getInputName().find(".fbx") != -1)
-	print("From FBX:", bIsFromFBX)
-		
+	#bIsFromFBX = (rapi.getInputName().find(".fbx") != -1)
+	#print("From FBX:", bIsFromFBX)
+	extension = os.path.splitext(rapi.getInputName())[1]
+	
 	#check if exporting bones and create skin bone map if so:	
 	vertElemCount = 3 
 	if bDoSkin:
@@ -3089,7 +3134,7 @@ def meshWriteModel(mdl, bs):
 		for col in mesh.colors:
 			if not bColorsExist and len(col) > 1:
 				bColorsExist = True
-				print ("Vertex colors detected")
+				print ("  Vertex colors detected")
 				break
 		if bReWrite and bColorsExist:
 			bDoColors = True
@@ -3196,25 +3241,20 @@ def meshWriteModel(mdl, bs):
 		bs.writeByte(2) #set to 2 UV channels
 		bs.writeByte(1) #unknown
 		bs.writeUInt(len(submeshes)) #total mesh count
-		bs.writeUInt64(0)
+		#bs.writeUInt64(0)
 		
-		#uknFloats = openOptionsDialog.uknFloats if 'openOptionsDialog' in locals() else [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
-		uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
-		if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
-			bs.writeFloat(uknFloats[0])		#unknown (these values taken from a RE2 model)
-			bs.writeFloat(uknFloats[1])  	#unknown
-			bs.writeFloat(uknFloats[2]) 	#unknown
-			bs.writeFloat(uknFloats[3])  	#unknown
-		else:
-			bs.writeFloat(uknFloats[4]) 	#unknown
-			bs.writeFloat(uknFloats[5])  	#unknown
+		uknFloats = openOptionsDialog.uknFloats if openOptionsDialog else [0.009527391, 0.8515151, 0.04847997, 0.8639101]
+		#print ("Tell", bs.tell())
+		bs.writeFloat(uknFloats[0])		#unknown (these values taken from a RE2 model)
+		bs.writeFloat(uknFloats[1])  	#unknown
+		bs.writeFloat(uknFloats[2]) 	#unknown
+		bs.writeFloat(uknFloats[3])  	#unknown
 			
 		#Prepare for bounding box calc:	
 		mainBBOffs = bs.tell()
 		for i in range(4):
 			bs.writeUInt64(0) #main bounding box placeholder
 		
-		#if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
 		bs.writeUInt64(bs.tell()+8) #offset to LODOffsets
 		
 		if (bs.tell()+8) % 16 != 0:
@@ -3225,7 +3265,8 @@ def meshWriteModel(mdl, bs):
 		
 		#Write LODGroup:
 		bs.writeUInt(len(newMainMeshes))
-		bs.writeFloat(0.02667995) #unknown, maybe LOD distance change
+		LODDist = openOptionsDialog.LODDist if openOptionsDialog else 0.02667995
+		bs.writeFloat(LODDist) #unknown, maybe LOD distance change
 		bs.writeUInt64(bs.tell()+8) #Mainmeshes offset
 		
 		newMainMeshesOffset = bs.tell()
@@ -3248,7 +3289,7 @@ def meshWriteModel(mdl, bs):
 			meshVertexInfo.append([i, len(mm[0]), 0, 0, mm[1], mm[2]])
 			
 			for j, submesh in enumerate(mm[0]):
-				print ("New mainmesh GroupID", mm[len(mm)-1], "submesh", j)
+				#print ("New mainmesh GroupID", mm[len(mm)-1], "submesh", j)
 				bs.writeUInt(submesh[0])
 				bs.writeUInt(submesh[1])
 				bs.writeUInt(submesh[2])
@@ -3891,6 +3932,10 @@ def meshWriteModel(mdl, bs):
 	bs.seek(112)
 	if sGameName == "RE7": bs.seek(-16,1)
 	bs.writeUInt(0)
+	
+	if bDoVFX:
+		bs.seek(16)
+		bs.writeUByte(0x80)
 	
 	#fileSize
 	bs.seek(8)
