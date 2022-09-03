@@ -52,7 +52,7 @@ bNormalizeWeights 			= False					#Makes sure that the weights of every vertex ad
 bCalculateBoundingBoxes		= True					#Calculates the bounding box for each bone
 BoundingBoxSize				= 1.0					#With bCalculateBoundingBoxes False, change the size of the bounding boxes created for each rigged bone when exporting with -bones or -rewrite
 bRigToCoreBones				= False					#Assign non-matching bones to the hips and spine, when exporting a mesh without -bones or -rewrite
-bSetNumModels				= True					#Sets the header byte "NumModels" to 3, preventing crashes
+bSetNumModels				= True					#Sets the header byte "NumModels" to defaults when exporting without -rewrite, preventing crashes
 
 #Import/Export:
 bAddBoneNumbers 			= 2						#Adds bone numbers and colons before bone names to indicate if they are active. 0 = Off, 1 = On, 2 = Auto
@@ -66,7 +66,6 @@ import re
 import copy
 import noewin
 from noewin import user32, gdi32, kernel32
-
 
 def registerNoesisTypes():
 
@@ -415,7 +414,7 @@ class openOptionsDialogWindow:
 		self.doRewrite = False
 		self.doCancel = True
 		self.failed = False
-		self.doVFX = False
+		self.doVFX = noesis.optWasInvoked("-adv")
 		self.indices = []
 		self.LODDist = 0.02667995
 		self.uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
@@ -541,6 +540,7 @@ class openOptionsDialogWindow:
 			
 			index = self.noeWnd.createCheckBox("VFX Mesh", 5, row1_y, 80, 30, self.openOptionsVFXCheckbox)
 			self.vfxCheckbox = self.noeWnd.getControlByIndex(index)
+			self.vfxCheckbox.setChecked(self.doVFX)
 			
 			index = self.noeWnd.createComboBox(5, row2_y, width-20, 20, self.selectSourceListItem, noewin.CBS_DROPDOWNLIST)
 			self.meshFileList = self.noeWnd.getControlByIndex(index)
@@ -2678,7 +2678,7 @@ def meshWriteModel(mdl, bs):
 	bDoSkin = False
 	bDoColors = False
 	bAddNumbers = False
-	bDoVFX = False
+	bDoVFX = noesis.optWasInvoked("-vfx")
 	numLODs = 1
 	diff = 0	
 	meshVertexInfo = []
@@ -3244,7 +3244,6 @@ def meshWriteModel(mdl, bs):
 		#bs.writeUInt64(0)
 		
 		uknFloats = openOptionsDialog.uknFloats if openOptionsDialog else [0.009527391, 0.8515151, 0.04847997, 0.8639101]
-		#print ("Tell", bs.tell())
 		bs.writeFloat(uknFloats[0])		#unknown (these values taken from a RE2 model)
 		bs.writeFloat(uknFloats[1])  	#unknown
 		bs.writeFloat(uknFloats[2]) 	#unknown
@@ -3920,10 +3919,15 @@ def meshWriteModel(mdl, bs):
 		bs.seek(56)
 		bs.writeUInt(0)
 		
-	#set NumModels flag to 3 (else crash)
+	#set numModels flag
 	if bSetNumModels or bReWrite:
 		bs.seek(16)
-		bs.writeUByte(3)
+		bitFlag = 0x00
+		if bDoVFX or rapi.getOutputName().find("2109148288") != -1: 
+			bitFlag = bitFlag + 0x80
+		if bDoSkin: 
+			bitFlag = bitFlag + 0x03
+		bs.writeUByte(bitFlag)
 	
 	#remove blendshapes offsets
 	bs.seek(64)
@@ -3932,10 +3936,6 @@ def meshWriteModel(mdl, bs):
 	bs.seek(112)
 	if sGameName == "RE7": bs.seek(-16,1)
 	bs.writeUInt(0)
-	
-	if bDoVFX:
-		bs.seek(16)
-		bs.writeUByte(0x80)
 	
 	#fileSize
 	bs.seek(8)
