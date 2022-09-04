@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.9996 (August 5 2022)
+#v2.9997 (September 3 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -555,7 +555,7 @@ class openOptionsDialogWindow:
 			
 			
 			self.noeWnd.createStatic("Rewrite Options:", 450, 100, 140, 20)
-			self.noeWnd.createStatic("Unknown Floats:", 5, 130, 140, 20)
+			self.noeWnd.createStatic("BoundingSphere:", 5, 130, 140, 20)
 			index = self.noeWnd.createEditBox(115, 125, 100, 30, str(self.uknFloats[0]), self.inputFloatEditBox, False)
 			self.uknFloats0 = self.noeWnd.getControlByIndex(index)
 			index = self.noeWnd.createEditBox(215, 125, 100, 30, str(self.uknFloats[1]), self.inputFloat1EditBox, False)
@@ -571,7 +571,7 @@ class openOptionsDialogWindow:
 				index = self.noeWnd.createEditBox(615, 125, 100, 30, str(self.uknFloats[5]), self.inputFloat5EditBox, False)
 				self.uknFloats5 = self.noeWnd.getControlByIndex(index)'''
 			
-			self.noeWnd.createStatic("LOD0 Distance?:", 775, 130, 140, 20)
+			self.noeWnd.createStatic("LOD0 Factor:", 775, 130, 140, 20)
 			index = self.noeWnd.createEditBox(885, 125, 100, 30, str(self.LODDist), self.inputLODDistEditBox, False)
 			self.LODEditBox = self.noeWnd.getControlByIndex(index)
 			
@@ -2643,7 +2643,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.9996 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.9997 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
