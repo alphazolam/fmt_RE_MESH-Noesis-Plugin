@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.9997 (September 3 2022)
+#v2.99971 (September 8 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -417,7 +417,7 @@ class openOptionsDialogWindow:
 		self.doVFX = noesis.optWasInvoked("-adv")
 		self.indices = []
 		self.LODDist = 0.02667995
-		self.uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101, 0.07618849, 0.2573551]
+		self.uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101]
 		
 	def setWidthAndHeight(self, width=None, height=None):
 		self.width = width or self.width
@@ -2070,7 +2070,7 @@ class meshFile(object):
 			matCount = countArray[1]
 			self.rootDir = GetRootGameDir()
 			bLoadedMats = False
-			if not (noesis.optWasInvoked("-noprompt")) and not rapi.noesisIsExporting() and not bRenameMeshesToFilenames:
+			if not (noesis.optWasInvoked("-noprompt")) and not bRenameMeshesToFilenames and not rapi.noesisIsExporting(): 
 				bLoadedMats = self.createMaterials(matCount);
 			if bDebugMESH:
 				print("Count Array")
@@ -2362,7 +2362,13 @@ class meshFile(object):
 								rapi.rpgBindBoneWeightBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[weightIndex][1], vertElemHeaders[weightIndex][2] + (vertElemHeaders[weightIndex][1] * submeshData[k][3]) + 8, 8)
 								
 							if colorIndex != -1 and bColorsEnabled:
-								rapi.rpgBindColorBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[colorIndex][1], vertElemHeaders[colorIndex][2] + (vertElemHeaders[colorIndex][1] * submeshData[k][3]), 4)
+								offs = vertElemHeaders[colorIndex][2] + (vertElemHeaders[colorIndex][1] * submeshData[k][3])
+								numVerts = submeshData[k+1][3] - submeshData[k][3] if k+1 < len(submeshData) else meshVertexInfo[j][4] - submeshData[k][3]
+								#print(len(vertexBuffer), colorIndex, numVerts, offs,  offs + numVerts, vertElemHeaders[colorIndex][1], submeshData[k][1], submeshData[k][3])
+								if offs + numVerts*4 < len(vertexBuffer):
+									rapi.rpgBindColorBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[colorIndex][1], offs, 4)
+								else:
+									print("WARNING:", meshName, "Color buffer would have been read out of bounds by provided indices", "\n	Buffer Size:", len(vertexBuffer), "\n	Required Size:", offs + numVerts*4)
 								
 						if submeshData[k][1] > 0:
 							bs.seek(faceBuffOffs + (submeshData[k][2] * 2))
@@ -2643,7 +2649,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.9997 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.99971 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -3927,6 +3933,7 @@ def meshWriteModel(mdl, bs):
 			bitFlag = bitFlag + 0x80
 		if bDoSkin: 
 			bitFlag = bitFlag + 0x03
+		print("Flag: ", bitFlag)
 		bs.writeUByte(bitFlag)
 	
 	#remove blendshapes offsets

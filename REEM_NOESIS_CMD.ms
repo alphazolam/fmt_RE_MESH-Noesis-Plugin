@@ -1,7 +1,7 @@
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.36
-	--Last Release: June 30 2022
+	--Version: v0.37
+	--Last Release: September 8 2022
 	--Authors: alphaZomega, mariokart64n
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
 	
@@ -23,6 +23,7 @@
 	local python_plugin = "fmt_RE_MESH.py"
 	local current_extension = ".2109108288"
 	local current_extension2 = ".2109108288"
+	
 	local current_path_prefix = "stm"
 	local names_to_objects --dictionary
 	global formNoesisCMD
@@ -93,6 +94,28 @@
 			ok  
 		)  
 	) 
+	
+	local gamesList = #( "MHRSunbreak", "RE2", "RE3", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise")
+	local currentItem = "MHRSunbreak"
+	local currentItemIdx = 1
+	local currentItemIdx2 = 1
+	local games_to_mdfExts = losDic()
+	for key in gamesList do
+		games_to_mdfExts.setK key ( 
+			case key of (
+				"RE2 RT": ".21"
+				"RE3 RT": ".21"
+				"RE2": ".10"
+				"DMC5": ".10"
+				"RE3": ".13"
+				"RE7": ".32"
+				"RE7 RT": ".21"
+				"RE8": ".19"
+				"MHRise": ".19"
+				"MHRSunbreak": ".23"
+				default: ""
+			)
+		)
 
 	fn getAlignedOffset tell alignment = (
 		local offset = case alignment of  (
@@ -259,7 +282,7 @@
 		local pos = ftell bstream
 		local meshPath = ReadFixedString bstream 512
 		local counter = 0
-		local output --= ""
+		local output = #()
 		format "Scanning from % to % for meshes\n" pos limitPoint
 		try (
 			while getFilenameType meshPath != ".mesh" do ( --meshPath != "" and
@@ -280,7 +303,17 @@
 				)
 				meshPath = current_pak_location + meshPath + current_extension
 				format "Found mesh: %\n\n" meshPath
-				output = meshPath
+				fseek bstream ((getAlignedOffset (ftell bstream) 4) + 4) #seek_set
+				local mdfPath = ReadFixedString bstream 512
+				if getFilenameType mdfPath == ".mdf2" then (
+					local idx = findstring mdfPath "/"
+					while idx != undefined and idx != 0 do (
+						mdfPath = replace mdfPath idx 1 "\\"
+						idx = findstring mdfPath "/"
+					)
+					mdfPath = current_pak_location + mdfPath + (games_to_mdfExts.getK currentItem)
+				)
+				output = #(meshPath, mdfPath)
 			) else format "\n"
 		) catch ( undefined )
 		output
@@ -324,10 +357,12 @@
 					if detectedString bstream (ftell bstream) then
 						redetectStringBehind bstream false
 					local gameobject = Read_via_GameObject bstream (GameObjectAddresses[i]-4)
-					local mesh = findMesh bstream GameObjectAddresses[i+1]
+					local MeshMDF = findMesh bstream GameObjectAddresses[i+1]
+					local mesh = MeshMDF[1]
+					local mdf = MeshMDF[2]
 					if mesh != undefined then (
-						append GameObjects #(gameobject, transform, mesh)
-						--format "%, % \n" (ftell bstream) (GameObjects[GameObjects.count][3] as string)
+						append GameObjects #(gameobject, transform, mesh, mdf)
+						--format "%, % \n" (ftell bstream) (GameObjects[GameObjects.count][4] as string)
 					)
 				)
 			)
@@ -376,18 +411,15 @@
 	try(destroydialog formNoesisCMD; clearlistener())catch()
 	print current_pak_location
 	
-	local gamesList = #("RE2 RT", "RE3 RT", "RE2", "RE3", "DMC5", "RE7", "RE7 RT", "RE8", "MHRise", "MHRSunbreak")
-	local currentItem = "RE2 RT"
-	local currentItemIdx = 1
-	local currentItemIdx2 = 1
-	
-	rollout formNoesisCMD "REEM Noesis 0.36" (
+	rollout formNoesisCMD "REEM Noesis 0.37" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
 			checkbox chk_resetScene "Reset On Import" checked:false align:#left
 			checkbox chk_legacyFBX "Use Legacy FBX" checked:false align:#left 
-			checkbox chk_fbxMerge "fbxmeshmerge" checked:true align:#left tooltip:"Merges together meshes that have been split apart and have \"0001_\" before their names"
+			--checkbox chk_fbxMerge "fbxmeshmerge" checked:true align:#left tooltip:"Merges together meshes that have been split apart and have \"0001_\" before their names"
+			checkbox chk_fbxOptimize "Optimize FBX" checked:true 
+			--checkbox chk_importMDF "Import Materials" checked:false
 			checkbox chk_folder "Import Folder" checked:false align:#left
 			button btn_import_SCN "Import SCN File" tooltip:"Tries to load positioned mesh files from a SCN file"
 		)
@@ -493,10 +525,10 @@
 						fbx_path = (getFilenamePath cmd) + key + ".fbx"
 						cmd = (
 							"\"" + noesis_path + "\" ?cmode \"" + cmd + "\" \"" + fbx_path + "\"" \
-							 + (if chk_legacyFBX.checked then " -fbxoldexport -fbxexportver FBX201400" else "") \
 							 + (if chk_bnNumbers.checked then " -bonenumbers" else "") \
-							 + (if chk_fbxMerge.checked then " -fbxmeshmerge" else "") \
-							 + (" -noprompt") \
+							 + (if chk_fbxOptimize.checked then "" else " -fbxnooptimize") \
+							 + " -fbxmeshmerge" + (if chk_legacyFBX.checked then " -fbxoldexport -fbxexportver FBX201400" else "") 
+							 --+ (if chk_importMDF.checked then "" else " -noprompt") \
 						)
 						if chk_showCMD.checked then (
 							DOSCommand ("\"" + cmd + "\"") 
@@ -561,7 +593,7 @@
 							)
 							
 							for mesh in meshes do (
-								mesh.material = undefined
+								--mesh.material = undefined
 								mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
 								if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
 								select mesh
