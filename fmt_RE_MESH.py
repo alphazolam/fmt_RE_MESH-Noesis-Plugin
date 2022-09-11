@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.99971 (September 8 2022)
+#v2.99972 (September 11 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -2649,7 +2649,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.99971 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v2.99972 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -3247,7 +3247,9 @@ def meshWriteModel(mdl, bs):
 		bs.writeByte(2) #set to 2 UV channels
 		bs.writeByte(1) #unknown
 		bs.writeUInt(len(submeshes)) #total mesh count
-		#bs.writeUInt64(0)
+		
+		if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
+			bs.writeUInt64(0) #ukn64
 		
 		uknFloats = openOptionsDialog.uknFloats if openOptionsDialog else [0.009527391, 0.8515151, 0.04847997, 0.8639101]
 		bs.writeFloat(uknFloats[0])		#unknown (these values taken from a RE2 model)
