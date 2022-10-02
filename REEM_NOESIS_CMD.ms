@@ -1,8 +1,9 @@
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.37
-	--Last Release: September 8 2022
+	--Version: v0.38
+	--Last Release: October 2 2022
 	--Authors: alphaZomega, mariokart64n
+	
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
 	
 	local re2_pak_location = 	"F:\\modmanager\\REtool\\RE2_chunk_000\\natives\\x64\\"
@@ -409,9 +410,9 @@
 	)
 	
 	try(destroydialog formNoesisCMD; clearlistener())catch()
-	print current_pak_location
+	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.37" (
+	rollout formNoesisCMD "REEM Noesis 0.38" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
@@ -488,11 +489,49 @@
 			state
 		)
 		
+		fn changeCurrentGame listIndex = (
+			currentItem = gamesList[listIndex]
+			currentItemIdx = listIndex
+			lbl_currentExt.caption = case currentItem of 
+				(
+					"RE2 RT": ".mesh.2109108288"
+					"RE3 RT": ".mesh.2109108288"
+					"RE2": ".mesh.1808312334"
+					"RE3": ".mesh.1902042334"
+					"DMC5": ".mesh.1808282334"
+					"RE7": ".mesh.32"
+					"RE7 RT": ".mesh.220128762"
+					"RE8": ".mesh.2101050001"
+					"MHRise": ".mesh.2008058288"
+					"MHRSunbreak": ".mesh.2109148288"
+					default: ""
+				)
+			current_pak_location = case currentItem of 
+				(
+					"RE2 RT": re2rt_pak_location
+					"RE3 RT": re3rt_pak_location
+					"RE2": re2_pak_location
+					"RE3": re3_pak_location
+					"DMC5": dmc5_pak_location
+					"RE7": re7_pak_location
+					"RE7 RT": re7rt_pak_location
+					"RE8": re8_pak_location
+					"MHRise": mhrise_pak_location
+					"MHRSunbreak": mhrise_pak_location
+					default: ""
+				)
+			
+			list_gameSelection.selection = currentItemIdx
+			current_extension = replace lbl_currentExt.caption 1 5 ""
+			edt_scnpath.text = current_pak_location
+		)
+		
 		fn Import_MESH cmd setCoords = (
 			
 			
 			if cmd == undefined then 
 				cmd = "undefined"
+			
 			
 			if doesFileExist cmd then (
 				local showFbxOptions = chk_showPlugOpt.checked
@@ -501,12 +540,16 @@
 				if chk_folder.checked and setCoords == undefined then --sets up multi-mesh folder import (not for SCN files)
 					files = getFiles (getFilenamePath cmd + "\\*.mesh.*")
 				
+				local lastExt = lbl_currentExt.caption
+				
 				for f = 1 to files.count do (
 					cmd = files[f]
 					
+					local thisExt = getFilenameType cmd
 					local key = getFilenameFile (getFilenameFile cmd)
 					local old_obj = undefined
 					local already_imported = false
+					
 					if setCoords != undefined then (
 						--format "grabbing value from key %" key
 						old_obj = names_to_objects.getK key
@@ -522,7 +565,10 @@
 					--if old_obj_idx == 0 or imported_objects[old_obj_idx] == undefined then (
 					
 					if not already_imported then (
-						fbx_path = (getFilenamePath cmd) + key + ".fbx"
+						fbx_path = (getFilenamePath cmd) + key
+						outtxt_path = fbx_path + ".txt"
+						fbx_path = fbx_path + ".fbx"
+						
 						cmd = (
 							"\"" + noesis_path + "\" ?cmode \"" + cmd + "\" \"" + fbx_path + "\"" \
 							 + (if chk_bnNumbers.checked then " -bonenumbers" else "") \
@@ -530,23 +576,39 @@
 							 + " -fbxmeshmerge" + (if chk_legacyFBX.checked then " -fbxoldexport -fbxexportver FBX201400" else "") 
 							 --+ (if chk_importMDF.checked then "" else " -noprompt") \
 						)
+						
 						if chk_showCMD.checked then (
-							DOSCommand ("\"" + cmd + "\"") 
+							DOSCommand ("\"" + cmd + " -logfile \"" + outtxt_path + "\"") 
 						) else (
-							HiddenDOSCommand ("\"" + cmd + "\"") startpath:(getFilenamePath noesis_path) donotwait:false
+							HiddenDOSCommand ("\"" + cmd + " -logfile \"" + outtxt_path + "\"") startpath:(getFilenamePath noesis_path) donotwait:false
 						)
+						
+						format "Import Command:\n%\n" cmd
+						
+						if doesFileExist outtxt_path then (
+							local fs = openFile outtxt_path
+							local noesisOutput = "\n"
+							while not eof fs do
+							   noesisOutput = noesisOutput + (readline fs) + "\n"
+							print noesisOutput
+							close fs
+							deletefile outtxt_path
+						)
+						
 						waitForFileUnlock(fbx_path)
+						
 						if showFbxOptions then (--chk_impPrompt
 							success = importFile fbx_path using:FBXIMP
 						) else (
 							success = importFile fbx_path #noPrompt using:FBXIMP
 						)
+						
 						if chk_delFBX.checked then 
 							deleteFile fbx_path
 						if force_backface_culling then 
 							for obj in selection where (classof obj == Editable_mesh) do 
 								obj.backfaceCull = on
-						format "%\n" cmd
+						
 					) else (
 						select old_obj
 						copyNodes = #(); maxOps.cloneNodes selection cloneType:#copy newNodes:&copyNodes #nodialog
@@ -554,69 +616,78 @@
 						success = true
 					)
 					
-					if success and chk_bnNumbers.checked then (				
-							
-						with redraw off (
-							local objSelected = selection as array
-							if setCoords != undefined and not already_imported then
-								names_to_objects.setK key objSelected 
+					
+					if success then ( 
+						
+						if thisExt != lastExt then (
+							lastExt = thisExt
+							changeCurrentGame ( findItem #(".2109148288", ".1808312334", ".1902042334", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288") lastExt)
+						)
+						
+						if chk_bnNumbers.checked then (				
 								
-							local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
-							local bones = for obj in objSelected where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj 
-							for bone in bones do hide bone
-							container = Point size:1.0
-							local uniqueNames = #(); local mainmeshes = #()
-							container.name = key
-							------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-							if setCoords != undefined then (
-								if container.name != setCoords[1].Name then
-									container.name = setCoords[1].Name + " (" + container.name + ")"
-								print ("Loaded " + key + " " + (setCoords[2] as string))
-								container.rotation = setCoords[2].LocalRotation
-								container.scale = setCoords[2].LocalScale
-								container.pos = setCoords[2].LocalPosition
-								container.transform.controller.value *= (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
-								container.pos.controller.value *= 100
-							)
-							for mesh in meshes do ( -- create MainMesh containers
-								fs = filterstring mesh.name "_"
-								if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
-									mainmesh = Point size:1.0
-									mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
-									mainmesh.parent = container
-									mainmesh.transform = container.transform
-									append mainmeshes mainmesh
+							with redraw off (
+								local objSelected = selection as array
+								if setCoords != undefined and not already_imported then
+									names_to_objects.setK key objSelected 
+									
+								local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
+								local bones = for obj in objSelected where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj 
+								for bone in bones do hide bone
+								container = Point size:1.0
+								local uniqueNames = #(); local mainmeshes = #()
+								container.name = key
+								------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+								if setCoords != undefined then (
+									if container.name != setCoords[1].Name then
+										container.name = setCoords[1].Name + " (" + container.name + ")"
+									print ("Loaded " + key + " " + (setCoords[2] as string))
+									container.rotation = setCoords[2].LocalRotation
+									container.scale = setCoords[2].LocalScale
+									container.pos = setCoords[2].LocalPosition
+									container.transform.controller.value *= (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
+									container.pos.controller.value *= 100
 								)
-								if setCoords != undefined then 
-									mesh.transform = container.transform
-								mesh.parent = mainmeshes[mainmeshes.count]
-							)
-							
-							for mesh in meshes do (
-								--mesh.material = undefined
-								mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
-								if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
-								select mesh
-								max modify mode
-								mesh.modifiers[#Skin].bone_Limit = 8 
-								for b = 1 to bones.count do (
-									if b == 1 and setCoords != undefined then
-										bones[b].transform = container.transform
-									bones[b].showLinks = true
-									bones[b].showLinksOnly = true
-									bones[b].wirecolor = yellow
-									fs = filterstring bones[b].name ":"
-									if fs[2] != undefined then (
-										if (getuserprop bones[b] "Bone_Number") == undefined do setuserprop bones[b] "Bone_Number" fs[1]
-										if (getuserprop bones[b] "Bone_Name") == undefined do setuserprop bones[b] "Bone_Name" fs[2]
+								for mesh in meshes do ( -- create MainMesh containers
+									fs = filterstring mesh.name "_"
+									if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
+										mainmesh = Point size:1.0
+										mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
+										mainmesh.parent = container
+										mainmesh.transform = container.transform
+										append mainmeshes mainmesh
 									)
-									bnIdx = findBoneIdx mesh.modifiers[#Skin] bones[b].name
-									if bnIdx == 0 then ( -- add bones to Skin that have numbers but are not currently in
-										if fs.count > 1 then 
-											skinOps.addBone mesh.modifiers[#Skin] bones[b] 0
-									) else if fs.count == 1 then ( -- remove bones from Skin that have no numbers
-										skinOps.selectbone mesh.modifiers[#Skin] bnIdx
-										skinOps.removebone mesh.modifiers[#Skin]
+									if setCoords != undefined then 
+										mesh.transform = container.transform
+									mesh.parent = mainmeshes[mainmeshes.count]
+								)
+								
+								for mesh in meshes do (
+									--mesh.material = undefined
+									mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
+									if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
+									select mesh
+									max modify mode
+									mesh.modifiers[#Skin].bone_Limit = 8 
+									for b = 1 to bones.count do (
+										if b == 1 and setCoords != undefined then
+											bones[b].transform = container.transform
+										bones[b].showLinks = true
+										bones[b].showLinksOnly = true
+										bones[b].wirecolor = yellow
+										fs = filterstring bones[b].name ":"
+										if fs[2] != undefined then (
+											if (getuserprop bones[b] "Bone_Number") == undefined do setuserprop bones[b] "Bone_Number" fs[1]
+											if (getuserprop bones[b] "Bone_Name") == undefined do setuserprop bones[b] "Bone_Name" fs[2]
+										)
+										bnIdx = findBoneIdx mesh.modifiers[#Skin] bones[b].name
+										if bnIdx == 0 then ( -- add bones to Skin that have numbers but are not currently in
+											if fs.count > 1 then 
+												skinOps.addBone mesh.modifiers[#Skin] bones[b] 0
+										) else if fs.count == 1 then ( -- remove bones from Skin that have no numbers
+											skinOps.selectbone mesh.modifiers[#Skin] bnIdx
+											skinOps.removebone mesh.modifiers[#Skin]
+										)
 									)
 								)
 							)
@@ -659,39 +730,7 @@
 		)
 		
 		on list_gameSelection selected i do (
-			currentItem = gamesList[i]
-			currentItemIdx = i
-			lbl_currentExt.caption = case currentItem of 
-				(
-					"RE2 RT": ".mesh.2109108288"
-					"RE3 RT": ".mesh.2109108288"
-					"RE2": ".mesh.1808312334"
-					"RE3": ".mesh.1902042334"
-					"DMC5": ".mesh.1808282334"
-					"RE7": ".mesh.32"
-					"RE7 RT": ".mesh.220128762"
-					"RE8": ".mesh.2101050001"
-					"MHRise": ".mesh.2008058288"
-					"MHRSunbreak": ".mesh.2109148288"
-					default: ""
-				)
-			current_pak_location = case currentItem of 
-				(
-					"RE2 RT": re2rt_pak_location
-					"RE3 RT": re3rt_pak_location
-					"RE2": re2_pak_location
-					"RE3": re3_pak_location
-					"DMC5": dmc5_pak_location
-					"RE7": re7_pak_location
-					"RE7 RT": re7rt_pak_location
-					"RE8": re8_pak_location
-					"MHRise": mhrise_pak_location
-					"MHRSunbreak": mhrise_pak_location
-					default: ""
-				)
-			print current_pak_location 
-			current_extension = replace lbl_currentExt.caption 1 5 ""
-			edt_scnpath.text = current_pak_location
+			changeCurrentGame i
 		)
 		
 		on list_gameSelection2 selected i do (
@@ -823,7 +862,10 @@
 					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334|All|*.*|"
 					
 				if cmd != undefined and cmd != "" then (
-					fbx_path = (getFilenamePath cmd) + (getFilenameFile (getFilenameFile cmd)) + ".fbx"
+					local fbx_path = (getFilenamePath cmd) + (getFilenameFile (getFilenameFile cmd))
+					local outtxt_path = fbx_path + ".txt"
+					fbx_path = fbx_path + ".fbx"
+					
 					if chk_reWrite.checked then (
 						lbl_currentExt.caption = ".mesh" + (getFilenameType cmd)
 						out_path = (getFilenamePath cmd) + (getFilenameFile (getFilenameFile cmd)) + lbl_currentExt.caption
@@ -858,6 +900,7 @@
 					) else (
 						exportFile fbx_path #noPrompt selectedOnly:true using:FBXEXP
 					)
+					
 					if copyNodes[1] != undefined then delete copyNodes[1]
 					if doesFileExist fbx_path do (
 
@@ -873,11 +916,9 @@
 						)
 						
 						if chk_showCMD.checked then 
-							DOSCommand ("\"" + cmd + "\"")
+							DOSCommand ("\"" + cmd + " -logfile \"" + outtxt_path + "\"")
 						else 
-							HiddenDOSCommand ("\"" + cmd + "\"") startpath:(getFilenamePath noesis_path) donotwait:false
-						
-						waitForFileUnlock(fbx_path)
+							HiddenDOSCommand ("\"" + cmd + " -logfile \"" + outtxt_path + "\"") startpath:(getFilenamePath noesis_path) donotwait:false
 						
 						/*if chk_ReWrite2.checked then (
 							local cmd2 = replace cmd (findString cmd lbl_currentExt.caption) lbl_currentExt.caption.count lbl_currentExt2.caption
@@ -893,10 +934,21 @@
 							deleteFile fbx_path
 					)
 					
-					format "Command:\n%\n" cmd	
+					actionMan.executeAction 0 "40472" --open listener
+					
+					format "Export Command:\n%\n" cmd	
 					if cmd2 != undefined then 
-						format "Command2:\n%\n" cmd2
+						format "Export Command2:\n%\n" cmd2
 						
+					if doesFileExist outtxt_path then (
+						local fs = openFile outtxt_path
+						local noesisOutput = "\n"
+						while not eof fs do
+						   noesisOutput = noesisOutput + (readline fs) + "\n"
+						print noesisOutput
+						close fs
+						deletefile outtxt_path
+					)
 					
 					select originalSelection
 				)

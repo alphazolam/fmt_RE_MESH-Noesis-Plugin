@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v2.99972 (September 11 2022)
+#v3.0 (October 3, 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -41,7 +41,7 @@ bColorize 					= False					#Colors the materials of the model and lists which ma
 bUseOldNamingScheme 		= False					#Names submeshes by their material ID (like in the MaxScript) rather than by their order in the file 
 bRenameMeshesToFilenames 	= False					#For use with Noesis Model Merger. Renames submeshes to have their filenames in the mesh names
 bImportMaterialNames		= True					#Imports material name data for each mesh, appending it to the end of each Submesh's name
-bShorterNames				= False					#Imports meshes named like "LOD_1_Main_1_Sub_1" instead of "LODGroup_1_MainMesh_1_SubMesh_1"
+bShorterNames				= True					#Imports meshes named like "LOD_1_Main_1_Sub_1" instead of "LODGroup_1_MainMesh_1_SubMesh_1"
 bImportMips 				= False					#Imports texture mip maps as separate images
 
 #Export Options
@@ -53,6 +53,7 @@ bCalculateBoundingBoxes		= True					#Calculates the bounding box for each bone
 BoundingBoxSize				= 1.0					#With bCalculateBoundingBoxes False, change the size of the bounding boxes created for each rigged bone when exporting with -bones or -rewrite
 bRigToCoreBones				= False					#Assign non-matching bones to the hips and spine, when exporting a mesh without -bones or -rewrite
 bSetNumModels				= True					#Sets the header byte "NumModels" to defaults when exporting without -rewrite, preventing crashes
+bForceRootBoneToBone0		= True					#If the root bone is detected as the last bone in the bones list, this will move it to be the first bone in the list
 
 #Import/Export:
 bAddBoneNumbers 			= 2						#Adds bone numbers and colons before bone names to indicate if they are active. 0 = Off, 1 = On, 2 = Auto
@@ -417,7 +418,7 @@ class openOptionsDialogWindow:
 		self.doVFX = noesis.optWasInvoked("-adv")
 		self.indices = []
 		self.LODDist = 0.02667995
-		self.uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101]
+		#self.uknFloats = [0.009527391, 0.8515151, 0.04847997, 0.8639101]
 		
 	def setWidthAndHeight(self, width=None, height=None):
 		self.width = width or self.width
@@ -466,7 +467,7 @@ class openOptionsDialogWindow:
 			self.sourceList = getSameExtFilesInDir(self.filepath)
 			self.setComboBoxList(self.meshFileList, self.filepath)
 			
-	def inputFloatEditBox(self, noeWnd, controlId, wParam, lParam):
+	'''def inputFloatEditBox(self, noeWnd, controlId, wParam, lParam):
 		self.uknFloats[0] = float(self.uknFloats0.getText())
 		
 	def inputFloat1EditBox(self, noeWnd, controlId, wParam, lParam):
@@ -476,7 +477,7 @@ class openOptionsDialogWindow:
 		self.uknFloats[2] = float(self.uknFloats2.getText())
 		
 	def inputFloat3EditBox(self, noeWnd, controlId, wParam, lParam):
-		self.uknFloats[3] = float(self.uknFloats3.getText())
+		self.uknFloats[3] = float(self.uknFloats3.getText())'''
 		
 	'''def inputFloat4EditBox(self, noeWnd, controlId, wParam, lParam):
 		self.uknFloats[3] = float(self.uknFloats4.getText())
@@ -555,7 +556,7 @@ class openOptionsDialogWindow:
 			
 			
 			self.noeWnd.createStatic("Rewrite Options:", 450, 100, 140, 20)
-			self.noeWnd.createStatic("BoundingSphere:", 5, 130, 140, 20)
+			'''self.noeWnd.createStatic("BoundingSphere:", 5, 130, 140, 20)
 			index = self.noeWnd.createEditBox(115, 125, 100, 30, str(self.uknFloats[0]), self.inputFloatEditBox, False)
 			self.uknFloats0 = self.noeWnd.getControlByIndex(index)
 			index = self.noeWnd.createEditBox(215, 125, 100, 30, str(self.uknFloats[1]), self.inputFloat1EditBox, False)
@@ -563,7 +564,7 @@ class openOptionsDialogWindow:
 			index = self.noeWnd.createEditBox(315, 125, 100, 30, str(self.uknFloats[2]), self.inputFloat2EditBox, False)
 			self.uknFloats2 = self.noeWnd.getControlByIndex(index)
 			index = self.noeWnd.createEditBox(415, 125, 100, 30, str(self.uknFloats[3]), self.inputFloat3EditBox, False)
-			self.uknFloats3 = self.noeWnd.getControlByIndex(index)
+			self.uknFloats3 = self.noeWnd.getControlByIndex(index)'''
 			
 			'''if not (sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5"):
 				index = self.noeWnd.createEditBox(515, 125, 100, 30, str(self.uknFloats[4]), self.inputFloat4EditBox, False)
@@ -2325,7 +2326,7 @@ class meshFile(object):
 						rapi.rpgSetPosScaleBias((fDefaultMeshScale, fDefaultMeshScale, fDefaultMeshScale), (0, 0, 0))
 						if bImportMaterialNames:
 							#rapi.rpgSetName(meshName + "__" + matName + "__" + str(submeshData[k][len(submeshData[k])-1]))
-							rapi.rpgSetName(meshName + "__" + matName)
+							rapi.rpgSetName(meshName + '__' + matName)
 						
 						if sGameName == "RE7":
 							rapi.rpgBindPositionBufferOfs(vertexBuffer, noesis.RPGEODATA_FLOAT, bytesPerVert, (submeshData[k][3] * bytesPerVert))
@@ -2452,11 +2453,15 @@ class meshFile(object):
 					mdlList.append(mdl)
 				except:
 					print("Failed to read Occluder Mesh")
-		
-		
-		
+					
 		print (deferredWarning)
 		
+		boneNames = {}
+		for i, bone in enumerate(mdl.bones):
+			if bone.name in boneNames:
+				print("Duplicate Bone Name:", bone.name)
+			boneNames[bone.name] = True
+			
 		return mdlList
 		
 def meshLoadModel(data, mdlList):
@@ -2649,7 +2654,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v2.99972 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v3.0 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2904,6 +2909,29 @@ def meshWriteModel(mdl, bs):
 						print (bone.name, "has a \':\' (colon) in its name, auto-enabling bone numbers...")
 						break
 		
+		if bForceRootBoneToBone0 and mdl.bones[0] != None and mdl.bones[0].name.lower() != "root" and mdl.bones[len(mdl.bones)-1].name.lower() == "root":
+			print("WARNING: root is not bone[0], reorganizing heirarchy...")
+			sortedBones = list(mdl.bones)
+			rootIdx = len(sortedBones)-1
+			sortedBones.remove(sortedBones[rootIdx])
+			sortedBones.insert(0, mdl.bones[rootIdx])
+			for i, bone in enumerate(sortedBones):
+				bone.index = i
+				if bone.parentIndex == rootIdx:
+					bone.parentIndex = 0
+				elif bone.parentIndex != -1:
+					bone.parentIndex = bone.parentIndex + 1
+			mdl.bones = tuple(sortedBones)
+			for mesh in mdl.meshes:
+				for weightsList in mesh.weights:
+					indicesList = list(weightsList.indices)
+					for i, idx in enumerate(indicesList):
+						if idx == rootIdx:
+							idx = 0
+						else:
+							indicesList[i] = idx + 1
+					weightsList.indices = tuple(indicesList)
+		
 		for i, bone in enumerate(mdl.bones):
 			if bone.name.find('_') == 8 and bone.name.startswith("bone"):
 				print ("Renaming Bone " + str(bone.name) + " to " + bone.name[9:len(bone.name)] )
@@ -2927,8 +2955,12 @@ def meshWriteModel(mdl, bs):
 			for i, bone in enumerate(mdl.bones):
 				if len(newSkinBoneMap) < 256:
 					newSkinBoneMap.append(i)
-
+	
+	
+	
+	BBskipBytes = 8 if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5" else 0
 	newBBOffs = 0
+	
 	#OLD WAY (reading source file, no rewrite):
 	#====================================================================
 	if not bReWrite:
@@ -3146,12 +3178,13 @@ def meshWriteModel(mdl, bs):
 			bDoColors = True
 			break
 			
+		
 	if bRotateBonesUpright:
 		#rot_mat = NoeMat43(((1, 0, 0), (0, 0, 1), (0, -1, 0), (0, 0, 0)))
 		rot_mat = NoeMat43(((1, 0, 0), (0, -1, 0), (0, 0, 1), (0, 0, 0)))
 		for bone in mdl.bones:
 			bone.setMatrix( (bone.getMatrix().inverse() * rot_mat).inverse()) 	#rotate back to normal
-	
+			
 	#NEW WAY (rewrite)
 	#====================================================================
 	if bReWrite: #save new mesh order	
@@ -3164,7 +3197,7 @@ def meshWriteModel(mdl, bs):
 		
 		
 		for i, mesh in enumerate(submeshes):
-			mat = mesh.name.split('__')[1]
+			mat = mesh.name.split('__', 1)[1]
 			if mat not in newMaterialNames:
 				newMaterialNames.append(mat)
 				
@@ -3174,7 +3207,7 @@ def meshWriteModel(mdl, bs):
 		
 		for i, mesh in enumerate(submeshes):
 			splitName = mesh.name.split('_')
-			splitMatNames = mesh.name.split('__')
+			splitMatNames = mesh.name.split('__', 1)
 			key = len(newMainMeshes)
 			newGroupID = splitName[3]
 			#try:
@@ -3248,19 +3281,11 @@ def meshWriteModel(mdl, bs):
 		bs.writeByte(1) #unknown
 		bs.writeUInt(len(submeshes)) #total mesh count
 		
-		if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
-			bs.writeUInt64(0) #ukn64
+		if BBskipBytes==8:
+			bs.writeUInt64(0)
 		
-		uknFloats = openOptionsDialog.uknFloats if openOptionsDialog else [0.009527391, 0.8515151, 0.04847997, 0.8639101]
-		bs.writeFloat(uknFloats[0])		#unknown (these values taken from a RE2 model)
-		bs.writeFloat(uknFloats[1])  	#unknown
-		bs.writeFloat(uknFloats[2]) 	#unknown
-		bs.writeFloat(uknFloats[3])  	#unknown
-			
-		#Prepare for bounding box calc:	
-		mainBBOffs = bs.tell()
-		for i in range(4):
-			bs.writeUInt64(0) #main bounding box placeholder
+		for i in range(6):
+			bs.writeUInt64(0) #main bounding sphere+box placeholder
 		
 		bs.writeUInt64(bs.tell()+8) #offset to LODOffsets
 		
@@ -3699,7 +3724,7 @@ def meshWriteModel(mdl, bs):
 			vertexStrideStart += len(mesh.positions)
 				
 		normalTangentStart = bs.tell()	
-		for mesh in submeshes:
+		for m, mesh in enumerate(submeshes):
 			for v, vcmp in enumerate(mesh.tangents):
 				'''
 				#check vertex component's normals on export (MHRise Sunbreak em077_00.mesh):
@@ -3707,7 +3732,13 @@ def meshWriteModel(mdl, bs):
 					print(mesh.name, len(mesh.positions), "Vert", v, "\nPosition:", mesh.positions[v][0], mesh.positions[v][1], mesh.positions[v][2])
 					#print("Normal:",   mesh.tangents[v][0], mesh.tangents[v][1], mesh.tangents[v][2], mesh.tangents[v][3])
 					print("Normal:",   vcmp[0], vcmp[1], vcmp[2], vcmp[3])'''
-					
+				test = vcmp[0][0] * 127 + 0.5000000001
+				if test != test:
+					print (test, m, v)
+					print(vcmp)
+					print( mesh.normals[v])
+					return 0
+				
 				bs.writeByte(int(vcmp[0][0] * 127 + 0.5000000001)) #normal
 				bs.writeByte(int(vcmp[0][1] * 127 + 0.5000000001))
 				bs.writeByte(int(vcmp[0][2] * 127 + 0.5000000001))
@@ -3768,10 +3799,10 @@ def meshWriteModel(mdl, bs):
 							thisBoneBB = boneWeightBBs[ vcmp.indices[idx] ] if vcmp.indices[idx] in boneWeightBBs else [999999.0, 999999.0, 999999.0, -999999.0, -999999.0, -999999.0]
 							if vertPos[0] < thisBoneBB[0]: thisBoneBB[0] = vertPos[0]
 							if vertPos[1] < thisBoneBB[1]: thisBoneBB[1] = vertPos[1]
-							if vertPos[2] < thisBoneBB[2]: thisBoneBB[2] = vertPos[2] 
-							if vertPos[0] > thisBoneBB[3]: thisBoneBB[3] = vertPos[0] 
-							if vertPos[1] > thisBoneBB[4]: thisBoneBB[4] = vertPos[1] 
-							if vertPos[2] > thisBoneBB[5]: thisBoneBB[5] = vertPos[2] 
+							if vertPos[2] < thisBoneBB[2]: thisBoneBB[2] = vertPos[2]
+							if vertPos[0] > thisBoneBB[3]: thisBoneBB[3] = vertPos[0]
+							if vertPos[1] > thisBoneBB[4]: thisBoneBB[4] = vertPos[1]
+							if vertPos[2] > thisBoneBB[5]: thisBoneBB[5] = vertPos[2]
 							boneWeightBBs[ vcmp.indices[idx] ] = thisBoneBB
 							
 					tupleList = sorted(tupleList, reverse=True) #sort in ascending order
@@ -3892,7 +3923,19 @@ def meshWriteModel(mdl, bs):
 				bs.writeUInt(colorsStart - vertexPosStart) 
 	
 	#fix main bounding box:
-	bs.seek(LOD1Offs + 24)
+	bs.seek(LOD1Offs+8+BBskipBytes)
+	
+	#Calculate Bounding Sphere:
+	BBcenter = NoeVec3((min[0]+(max[0]-min[0])/2, min[1]+(max[1]-min[1])/2, min[2]+(max[2]-min[2])/2))
+	sphereRadius = 0
+	for mesh in mdl.meshes:
+		for position in mesh.positions:
+			distToCenter = (position - BBcenter).length()
+			if distToCenter > sphereRadius: 
+				sphereRadius = distToCenter
+			
+	bs.writeBytes((BBcenter * newScale).toBytes()) #Bounding Sphere
+	bs.writeFloat(sphereRadius * newScale) #Bounding Sphere radius
 	bs.writeBytes((min * newScale).toBytes()) #BBox min
 	bs.writeBytes((max * newScale).toBytes()) #BBox max
 	
@@ -3904,15 +3947,14 @@ def meshWriteModel(mdl, bs):
 					remappedBoneIdx = newSkinBoneMap.index(idx)
 				else:
 					remappedBoneIdx = boneRemapTable.index(idx)
+				pos = mdl.bones[newSkinBoneMap[remappedBoneIdx]].getMatrix()[3]
 			except:
 				continue
 			bs.seek(newBBOffs+16+remappedBoneIdx*32)
-			#print(names[boneInds[remappedBoneIdx]], bs.tell())
-			boneWeightBBs[idx] = [box[0]*newScale, box[1]*newScale, box[2]*newScale, 1.0, box[3]*newScale, box[4]*newScale, box[5]*newScale, 1.0]
+			boneWeightBBs[idx] = [(box[0]-pos[0])*newScale, (box[1]-pos[1])*newScale, (box[2]-pos[2])*newScale, 1.0, (box[3]-pos[0])*newScale, (box[4]-pos[1])*newScale, (box[5]-pos[2])*newScale, 1.0]
 			box = boneWeightBBs[idx]
 			for coord in box:
 				bs.writeFloat(coord)
-		#print ("boneWeightBBs:", boneWeightBBs)
 		
 	bs.seek(LOD1Offs)
 	bs.writeByte(1)
