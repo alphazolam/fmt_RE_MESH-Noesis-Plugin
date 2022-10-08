@@ -2246,7 +2246,7 @@ class meshFile(object):
 					boneMapCount = bs.readUInt()
 					
 				bAddNumbers = False
-				if rapi.getInputName().find(".noesis") != -1:
+				if rapi.getInputName().find(".noesis") == -1:
 					if bAddBoneNumbers == 1 or noesis.optWasInvoked("-bonenumbers"):
 						bAddNumbers = True
 					elif bAddBoneNumbers == 2 and boneCount > 256:
