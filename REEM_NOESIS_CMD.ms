@@ -669,7 +669,7 @@
 								)
 								
 								for mesh in meshes do (
-									--mesh.material = undefined
+									mesh.material = undefined
 									mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
 									if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
 									select mesh
