@@ -2247,11 +2247,12 @@ class meshFile(object):
 					
 				bAddNumbers = False
 				if rapi.getInputName().find(".noesis") == -1:
+					maxBones = 1024 if isSF6 else 256
 					if bAddBoneNumbers == 1 or noesis.optWasInvoked("-bonenumbers"):
 						bAddNumbers = True
-					elif bAddBoneNumbers == 2 and boneCount > 256:
+					elif bAddBoneNumbers == 2 and boneCount > maxBones:
 						bAddNumbers = True
-						print ("Model has more than 256 bones, auto-enabling bone numbers...")
+						print ("Model has more than", maxBones, "bones, auto-enabling bone numbers...")
 				
 				bs.seek(bonesOffs + 16)
 				
@@ -2978,7 +2979,6 @@ def meshWriteModel(mdl, bs):
 		
 		if bAddBoneNumbers == 1 or noesis.optWasInvoked("-bonenumbers"):
 			bAddNumbers = True
-			
 		elif bAddBoneNumbers == 2:
 			maxBones = 1024 if isSF6 else 256
 			if len(mdl.bones) > maxBones:

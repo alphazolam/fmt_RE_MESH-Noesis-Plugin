@@ -443,7 +443,7 @@
 			button BtnSetScale "xScale" offset:[-30,0]
 			edittext FldScale "" text:"1.0" fieldWidth:60 labelOnTop:false offset:[70,-25]
 			button btn_reimport "Reimport Noesis FBX" align:#center
-			button BtnAnimToBlender "Export FBX Animation" align:#center
+			button BtnAnimToBlender "Export FBX Anim & Mesh" align:#center
 		)
 		group "Config" (
 			dropdownlist list_gameSelection items:gamesList width:110 height:24 align:#center
@@ -1135,7 +1135,7 @@
 				max modify mode
 				modPanel.setCurrentObject dummySkin
 				for obj in objSelected do (
-					if superclassof obj == Helper or superclassof obj == BoneGeometry then 
+					if superclassof obj == Helper or superclassof obj == BoneGeometry or superclassof obj == GeometryClass then 
 						skinops.addBone dummySkin obj 0
 				)
 				if cmd != undefined and cmd != "" do (
