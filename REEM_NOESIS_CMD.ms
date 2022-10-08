@@ -1,7 +1,7 @@
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.38
-	--Last Release: October 2 2022
+	--Version: v0.39
+	--Last Release: October 8 2022
 	--Authors: alphaZomega, mariokart64n
 	
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
@@ -15,6 +15,7 @@
 	local re7rt_pak_location = 	"F:\\modmanager\\REtool\\RE7rt_chunk_000\\natives\\stm\\"
 	local dmc5_pak_location =	"F:\\modmanager\\REtool\\DMC_chunk_000\\natives\\x64\\"
 	local mhrise_pak_location = "F:\\modmanager\\REtool\\MHRise_chunk_000\\natives\\stm\\"
+	local sf6_pak_location =	"F:\\modmanager\\REtool\\SF6Beta_chunk_000\\natives\\stm\\"
 	--local rt_pak_location = 	"F:\\modmanager\\REtool\\RE2RT_chunk_000\\natives\\stm\\"
 	local show_ReWrite2 = true
 	
@@ -96,7 +97,7 @@
 		)  
 	) 
 	
-	local gamesList = #( "MHRSunbreak", "RE2", "RE3", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise")
+	local gamesList = #( "MHRSunbreak", "RE2", "RE3", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6")
 	local currentItem = "MHRSunbreak"
 	local currentItemIdx = 1
 	local currentItemIdx2 = 1
@@ -114,6 +115,7 @@
 				"RE8": ".19"
 				"MHRise": ".19"
 				"MHRSunbreak": ".23"
+				"SF6": ".31"
 				default: ""
 			)
 		)
@@ -412,7 +414,7 @@
 	try(destroydialog formNoesisCMD; clearlistener())catch()
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.38" (
+	rollout formNoesisCMD "REEM Noesis 0.39" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
@@ -429,8 +431,8 @@
 			checkbox chk_flipHandedness "DirectX handedness" checked:true align:#left
 			checkbox chk_doVFX "Export as VFX Mesh" checked:false align:#left
 			checkbox chk_showOptions "Show Advanced Options" checked:false align:#left
-			checkbox chk_writeBones "Write skeleton" checked:false align:#left
-			checkbox chk_reWrite "ReWrite MESH" checked:false align:#left
+			checkbox chk_writeBones "Write skeleton" checked:true align:#left
+			checkbox chk_reWrite "ReWrite MESH" checked:true align:#left
 			--checkbox chk_ReWrite2 "ReWrite 2nd MESH" checked:false align:#left
 			--dropdownlist list_gameSelection2 items:gamesList width:110 height:24 align:#center
 			--label lbl_currentExt2 ".mesh.2109108288" align:#center
@@ -504,6 +506,7 @@
 					"RE8": ".mesh.2101050001"
 					"MHRise": ".mesh.2008058288"
 					"MHRSunbreak": ".mesh.2109148288"
+					"SF6": ".mesh.220721329"
 					default: ""
 				)
 			current_pak_location = case currentItem of 
@@ -518,6 +521,7 @@
 					"RE8": re8_pak_location
 					"MHRise": mhrise_pak_location
 					"MHRSunbreak": mhrise_pak_location
+					"SF6": sf6_pak_location
 					default: ""
 				)
 			
@@ -593,6 +597,8 @@
 							print noesisOutput
 							close fs
 							deletefile outtxt_path
+							if findstring noesisOutput "Traceback" != undefined then 
+								return false
 						)
 						
 						waitForFileUnlock(fbx_path)
@@ -621,7 +627,7 @@
 						
 						if thisExt != lastExt then (
 							lastExt = thisExt
-							changeCurrentGame ( findItem #(".2109148288", ".1808312334", ".1902042334", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288") lastExt)
+							changeCurrentGame ( findItem #(".2109148288", ".1808312334", ".1902042334", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".220721329") lastExt)
 						)
 						
 						if chk_bnNumbers.checked then (				
@@ -668,7 +674,9 @@
 									if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
 									select mesh
 									max modify mode
-									mesh.modifiers[#Skin].bone_Limit = 8 
+									
+									mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".220721329" then 6 else 8 )
+									
 									for b = 1 to bones.count do (
 										if b == 1 and setCoords != undefined then
 											bones[b].transform = container.transform
@@ -826,7 +834,7 @@
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
@@ -846,6 +854,7 @@
 						"MHRSunbreak": getSaveFileName types:"MHRSunbreak(*.2109148288)|*.2109148288|"
 						"RE2 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
 						"RE3 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
+						"SF6" : getSaveFileName types:"RT(*.220721329)|*.220721329|"
 						default: getSaveFileName types:" \
 							DMC5(*.1808282334)|*.1808282334| \
 							RE2(*.1808312334)|*.1808312334| \
@@ -856,7 +865,8 @@
 							RE2 RT(*.2109108288)|*.2109108288| \
 							RE3 RT(*.2109108288)|*.2109108288| \
 							MHRise(*.2008058288)|*.2008058288| \
-							MHRSunbreak(*.2109148288)|*.2109148288|"
+							MHRSunbreak(*.2109148288)|*.2109148288| \
+							SF6(*.220721329)|*.220721329|"
 					) 
 				) else
 					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334|All|*.*|"

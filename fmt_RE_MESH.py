@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v3.0 (October 3, 2022)
+#v3.02 (October 8, 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -81,14 +81,14 @@ def registerNoesisTypes():
 		noesis.addOption(handle, "-adv", "Show Advanced Export Options window", 0)
 		noesis.addOption(handle, "-vfx", "Export as VFX mesh", 0)
 		return handle
-
-	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2010231143;.2101050001;.2109108288;.2109148288;.220128762;.32;.NewMesh")
+		
+	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2010231143;.2101050001;.2109108288;.2109148288;.220128762;.220721329;.32;.NewMesh")
 	noesis.setHandlerTypeCheck(handle, meshCheckType)
 	noesis.setHandlerLoadModel(handle, meshLoadModel)
 	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
 	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
 	
-	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.34;.35")
+	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.34;.35;.36")
 	noesis.setHandlerTypeCheck(handle, texCheckType)
 	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
 
@@ -240,6 +240,7 @@ formats = {
 	"REVerse":		{ "modelExt": ".2010231143", "texExt": ".30", 		 "mmtrExt": ".2011178797", "nDir": "stm", "mdfExt": ".mdf2.19" },
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21" },
+	"SF6": 			{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31" },
 }
 
 extToFormat = { #incomplete, just testing
@@ -654,7 +655,7 @@ def readTextureData(texData, mipWidth, mipHeight, format):
 	else:
 		print("Fatal Error: Unsupported texture type: " + str(format))
 		return 0
-	print("Detected texture format:", fmtName)
+	#print("Detected texture format:", fmtName)
 	return texData, fmtName
 	
 def texLoadDDS(data, texList):
@@ -1576,6 +1577,7 @@ class meshFile(object):
 		
 		tempGameName = "RE7RT" 		 if sGameName == "RERT" and rapi.getInputName().find("220128762") != -1 else sGameName
 		tempGameName = "MHRSunbreak" if sGameName == "RERT" and rapi.getInputName().find("2109148288") != -1 else sGameName
+		tempGameName = "SF6" 		 if sGameName == "RERT" and isSF6 else sGameName #rapi.getInputName().find("220721329") != -1 
 		
 		#tempGameName = sGameName
 		modelExt = formats[tempGameName]["modelExt"]
@@ -1719,13 +1721,15 @@ class meshFile(object):
 		#Parse Materials
 		for i in range(matCountMDF):
 			
-			if sGameName == "RE7":
+			if isSF6:
+				bs.seek(0x10 + (i * 100))
+			elif sGameName == "RE7":
 				bs.seek(0x10 + (i * 72))
 			elif sGameName == "RERT" or sGameName == "REVerse" or sGameName == "RE8" or sGameName == "MHRise":
 				bs.seek(0x10 + (i * 80))
 			else:
 				bs.seek(0x10 + (i * 64))
-
+			
 			materialNamesOffset = bs.readUInt64()
 			materialHash = bs.readInt()
 			if sGameName == "RE7":
@@ -1734,14 +1738,27 @@ class meshFile(object):
 			floatCount = bs.readUInt()
 			texCount = bs.readUInt()
 			bs.seek(8,1)
+			
+			if isSF6:
+				uknSF6int = bs.readUInt()
+				
 			if sGameName == "REVerse" or sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise":
 				bs.seek(8,1)
+				
+			if isSF6:
+				uknSF6int2 = bs.readUInt()
+				uknSF6int3 = bs.readUInt()
+			
 			floatHdrOffs = bs.readUInt64()
 			texHdrOffs = bs.readUInt64()
 			if sGameName == "REVerse" or sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise":
 				firstMtrlNameOffs = bs.readUInt64()
 			floatStartOffs = bs.readUInt64()
 			mmtr_PathOffs = bs.readUInt64()
+			
+			if isSF6:
+				uknSF6offset = bs.readUInt64()
+				
 			bs.seek(materialNamesOffset)
 			materialName = ReadUnicodeString(bs)
 			bs.seek(mmtr_PathOffs)
@@ -1847,6 +1864,8 @@ class meshFile(object):
 				if sGameName == "RERT" or sGameName == "RE3" or sGameName == "REVerse" or sGameName == "RE8" or sGameName == "MHRise" :
 					bs.seek(texHdrOffs + (j * 0x20))
 					textureInfo.append([bs.readUInt64(), bs.readUInt64(), bs.readUInt64(), bs.readUInt64()]) #TextureTypeOffset[0], uknBytes[1], TexturePathOffset[2], padding[3]
+					if isSF6:
+						bs.seek(8,1)
 				else:
 					bs.seek(texHdrOffs + (j * 0x18))
 					textureInfo.append([bs.readUInt64(), bs.readUInt64(), bs.readUInt64()])
@@ -2013,7 +2032,7 @@ class meshFile(object):
 	'''MESH IMPORT ========================================================================================================================================================================'''
 	def loadMeshFile(self, mdlList):
 		
-		global sGameName, bSkinningEnabled
+		global sGameName, bSkinningEnabled, isSF6
 		bs = self.inFile
 		magic = bs.readUInt()
 		meshVersion = bs.readUInt()
@@ -2023,7 +2042,11 @@ class meshFile(object):
 		
 		sGameName = "RE2"
 		sInputName = rapi.getInputName()
-		if meshVersion == 21041600 or sInputName.find(".2109108288") != -1 or sInputName.find(".220128762") != -1: #RE2RT + RE3RT, and RE7RT
+		isSF6 = False
+		if meshVersion == 220705151:
+			isSF6 = True
+			sGameName = "RERT"
+		elif meshVersion == 21041600 or sInputName.find(".2109108288") != -1 or sInputName.find(".220128762") != -1: #RE2RT + RE3RT, and RE7RT
 			sGameName = "RERT"
 		elif sInputName.find(".1808282334") != -1:
 			sGameName = "DMC5"
@@ -2041,29 +2064,53 @@ class meshFile(object):
 		elif meshVersion == 352921600 or sInputName.find(".32") != -1:
 			sGameName = "RE7"
 		
-		if sGameName != "RE7":
-			unk02 = bs.readUInt()
-		unk03 = bs.readUShort()
-		numNodes = bs.readUShort()
-		if sGameName != "RE7":
-			unk04 = bs.readUInt()			
-		LOD1Offs = bs.readUInt64()
-		LOD2Offs = bs.readUInt64()
-		occluderMeshOffs = bs.readUInt64()
-		bonesOffs = bs.readUInt64()
-		if sGameName != "RE7":
-			topologyOffs = bs.readUInt64()
-			
-		value = (myDict["value"] if "value" in myDict else {}) if 'myDict' in locals() else {}
-			
-		bShapesHdrOffs = bs.readUInt64()
-		floatsHdrOffs = bs.readUInt64()
-		vBuffHdrOffs = bs.readUInt64()
-		ukn3 = bs.readUInt64()
-		nodesIndicesOffs = bs.readUInt64()
-		boneIndicesOffs = bs.readUInt64()
-		bshapesIndicesOffs = bs.readUInt64()
-		namesOffs = bs.readUInt64()
+		if isSF6:
+			ukn = bs.readUInt()
+			Flag = bs.readUByte()
+			SolvedOffset = bs.readUByte()
+			ukn2 = bs.readUShort() 
+			numNodes = bs.readUInt()
+			ukn3 = bs.readUInt64()
+			LOD1Offs = bs.readUInt64()
+			LOD2Offs = bs.readUInt64()  
+			occluderMeshOffs = bs.readUInt64()  
+			bShapesHdrOffs = bs.readUInt64()  
+			bshapesIndicesOffs = bs.readUInt64()  
+			vBuffHdrOffs = bs.readUInt64() 
+			groupPivotOffs = bs.readUInt64()  
+			uknOffset = bs.readUInt64()  
+			floatsHdrOffs = bs.readUInt64()  
+			bonesOffs = bs.readUInt64()  
+			nodesIndicesOffs = bs.readUInt64()  
+			boneIndicesOffs = bs.readUInt64()  
+			topologyOffs = bs.readUInt64()  
+			ukn4 = bs.readUInt64()
+			namesOffs = bs.readUInt64()  
+			verticesOffset = bs.readUInt64() 
+		else:
+			if sGameName != "RE7":
+				unk02 = bs.readUInt()
+			unk03 = bs.readUShort()
+			numNodes = bs.readUShort()
+			if sGameName != "RE7":
+				unk04 = bs.readUInt()			
+			LOD1Offs = bs.readUInt64()
+			LOD2Offs = bs.readUInt64()
+			occluderMeshOffs = bs.readUInt64()
+			bonesOffs = bs.readUInt64()
+			if sGameName != "RE7":
+				topologyOffs = bs.readUInt64()
+				
+			value = (myDict["value"] if "value" in myDict else {}) if 'myDict' in locals() else {}
+				
+			bShapesHdrOffs = bs.readUInt64()
+			floatsHdrOffs = bs.readUInt64()
+			vBuffHdrOffs = bs.readUInt64()
+			ukn3 = bs.readUInt64()
+			nodesIndicesOffs = bs.readUInt64()
+			boneIndicesOffs = bs.readUInt64()
+			bshapesIndicesOffs = bs.readUInt64()
+			namesOffs = bs.readUInt64()
 		
 		if LOD1Offs:
 			bs.seek(LOD1Offs)
@@ -2094,12 +2141,20 @@ class meshFile(object):
 		else:
 			vertElemHdrOffs = bs.readUInt64()
 			vertBuffOffs = bs.readUInt64()
-			faceBuffOffs = bs.readUInt64()
-			if sGameName == "RERT":
-				uknIntA = bs.readUInt()
-				uknIntB = bs.readUInt()
-			vertBuffSize = bs.readUInt()
-			faceBuffSize = bs.readUInt()
+			
+			if isSF6:
+				uknVB = bs.readUInt64()
+				vertBuffSize = bs.readUInt()
+				face_buffOffsSF6 = bs.readUInt()
+				faceBuffOffs = face_buffOffsSF6 + vertBuffOffs;
+			else:
+				faceBuffOffs = bs.readUInt64()
+				if sGameName == "RERT":
+					uknIntA = bs.readUInt()
+					uknIntB = bs.readUInt()
+				vertBuffSize = bs.readUInt()
+				faceBuffSize = bs.readUInt()
+				
 			vertElemCountA = bs.readUShort()
 			vertElemCountB = bs.readUShort()
 			faceBufferSize2nd = bs.readUInt64()
@@ -2129,6 +2184,7 @@ class meshFile(object):
 					colorIndex = i
 			bs.seek(vertBuffOffs)
 		vertexStartIndex = bs.tell()
+		#print (vertElemHdrOffs, vertBuffOffs, uknVB, vertBuffSize, faceBuffOffs, vertElemCountA, vertElemCountB)
 		vertexBuffer = bs.readBytes(vertBuffSize)
 		submeshDataArr = []
 		
@@ -2190,12 +2246,13 @@ class meshFile(object):
 					boneMapCount = bs.readUInt()
 					
 				bAddNumbers = False
-				if bAddBoneNumbers == 1 or noesis.optWasInvoked("-bonenumbers"):
-					bAddNumbers = True
-				elif bAddBoneNumbers == 2 and boneCount > 256:
-					bAddNumbers = True
-					print ("Model has more than 256 bones, auto-enabling bone numbers...")
-					
+				if rapi.getInputName().find(".noesis") != -1:
+					if bAddBoneNumbers == 1 or noesis.optWasInvoked("-bonenumbers"):
+						bAddNumbers = True
+					elif bAddBoneNumbers == 2 and boneCount > 256:
+						bAddNumbers = True
+						print ("Model has more than 256 bones, auto-enabling bone numbers...")
+				
 				bs.seek(bonesOffs + 16)
 				
 				if boneCount:
@@ -2274,9 +2331,9 @@ class meshFile(object):
 					submeshData = []
 					for k in range(meshVertexInfo[j][1]):
 						if sGameName == "RERT" or sGameName == "REVerse" or sGameName == "MHRise" or sGameName == "RE8":
-							submeshData.append([bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt64(), self.groupIDs[len(self.groupIDs)-1]]) 
+							submeshData.append([bs.readUShort(), bs.readUShort(), bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt64(), self.groupIDs[len(self.groupIDs)-1]]) 
 						else:
-							submeshData.append([bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt(), self.groupIDs[len(self.groupIDs)-1]]) #0 MaterialID, 1 faceCount, 2 indexBufferStartIndex, 3 vertexStartIndex
+							submeshData.append([bs.readUShort(), bs.readUShort(), bs.readUInt(), bs.readUInt(), bs.readUInt(), self.groupIDs[len(self.groupIDs)-1]]) #0 MaterialID, 1 faceCount, 2 indexBufferStartIndex, 3 vertexStartIndex
 					
 					submeshDataArr.append(submeshData)
 					
@@ -2285,8 +2342,19 @@ class meshFile(object):
 						mainMeshNo = self.groupIDs[len(self.groupIDs)-1] if bReadGroupIds else j+1
 						mainMeshStr = "_Group_" if bReadGroupIds else "_MainMesh_" if not bShorterNames else "_Main_"
 						
+						materialID = submeshData[k][0]
+						uknSubmeshID = submeshData[k][1]
+						numFaces	 = submeshData[k][2]
+						facesBefore  = submeshData[k][3]
+						vertsBefore  = submeshData[k][4]
+						uknSubmeshInt1 = submeshData[k][5]
+						numVerts = submeshData[k+1][4] - vertsBefore if k+1 < len(submeshData) else meshVertexInfo[j][4] #- vertsBefore
+						
+						mainMeshNo = self.groupIDs[len(self.groupIDs)-1] if bReadGroupIds else j+1
+						mainMeshStr = "_Group_" if bReadGroupIds else "_MainMesh_" if not bShorterNames else "_Main_"
+						
 						if bUseOldNamingScheme:
-							meshName = "LODGroup_" + str(i+1) + mainMeshStr + str(mainMeshNo) + "_SubMesh_" + str(submeshData[k][0]+1)
+							meshName = "LODGroup_" + str(i+1) + mainMeshStr + str(mainMeshNo) + "_SubMesh_" + str(materialID+1)
 						else:
 							if bRenameMeshesToFilenames:
 								meshName = os.path.splitext(rapi.getLocalFileName(sInputName))[0].replace(".mesh", "") + "_" + str(mainMeshNo) + "_" + str(k+1)
@@ -2304,24 +2372,24 @@ class meshFile(object):
 						
 						#Search for material
 						if bLoadedMats:
-							matHash = hash_wide(names[matIndices[submeshData[k][0]]])
+							matHash = hash_wide(names[matIndices[materialID]])
 							if i == 0:
 								for m in range(len(self.matHashes)):
 									if self.matHashes[m] == matHash:
-										if self.matNames[m] != names[nameRemapTable[submeshData[k][0]]]:
-											print ("WARNING: " + meshName + "\'s material name \"" + self.matNames[m] + "\" in MDF does not match its material hash! \n	True material name: \"" + names[nameRemapTable[submeshData[k][0]]] + "\"")
+										if self.matNames[m] != names[nameRemapTable[materialID]]:
+											print ("WARNING: " + meshName + "\'s material name \"" + self.matNames[m] + "\" in MDF does not match its material hash! \n	True material name: \"" + names[nameRemapTable[materialID]] + "\"")
 										matName = self.matNames[m]
 										#rapi.rpgSetLightmap(matArray[k].replace(".dds".lower(), ""))
 										break
 						if matName == "":
 							if matHash == 0: 
-								matHash = hash_wide(names[matIndices[submeshData[k][0]]])
+								matHash = hash_wide(names[matIndices[materialID]])
 							if bLoadedMats:
-								print ("WARNING: " + meshName + "\'s material \"" + names[nameRemapTable[submeshData[k][0]]] + "\" hash " + str(matHash) + " not found in MDF!")
-							self.matNames.append(names[nameRemapTable[submeshData[k][0]]])
+								print ("WARNING: " + meshName + "\'s material \"" + names[nameRemapTable[materialID]] + "\" hash " + str(matHash) + " not found in MDF!")
+							self.matNames.append(names[nameRemapTable[materialID]])
 							
 							matName = self.matNames[len(self.matNames)-1]
-										
+						
 						rapi.rpgSetMaterial(matName)
 						rapi.rpgSetPosScaleBias((fDefaultMeshScale, fDefaultMeshScale, fDefaultMeshScale), (0, 0, 0))
 						if bImportMaterialNames:
@@ -2329,56 +2397,67 @@ class meshFile(object):
 							rapi.rpgSetName(meshName + '__' + matName)
 						
 						if sGameName == "RE7":
-							rapi.rpgBindPositionBufferOfs(vertexBuffer, noesis.RPGEODATA_FLOAT, bytesPerVert, (submeshData[k][3] * bytesPerVert))
-							rapi.rpgBindNormalBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, bytesPerVert, 12 + (submeshData[k][3] * bytesPerVert))
-							rapi.rpgBindTangentBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, bytesPerVert, 16 + (submeshData[k][3] * bytesPerVert))
-							rapi.rpgBindUV1BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, bytesPerVert, 20 + (submeshData[k][3] * bytesPerVert))
+							rapi.rpgBindPositionBufferOfs(vertexBuffer, noesis.RPGEODATA_FLOAT, bytesPerVert, (vertsBefore * bytesPerVert))
+							rapi.rpgBindNormalBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, bytesPerVert, 12 + (vertsBefore * bytesPerVert))
+							rapi.rpgBindTangentBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, bytesPerVert, 16 + (vertsBefore * bytesPerVert))
+							rapi.rpgBindUV1BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, bytesPerVert, 20 + (vertsBefore * bytesPerVert))
 							if (countArray[2] > 1):
-								rapi.rpgBindUV2BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, bytesPerVert, 24 + (submeshData[k][3] * bytesPerVert))
+								rapi.rpgBindUV2BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, bytesPerVert, 24 + (vertsBefore * bytesPerVert))
 							if bonesOffs > 0:
 								rapi.rpgSetBoneMap(boneRemapTable)
-								rapi.rpgBindBoneIndexBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, bytesPerVert, 24 + addBytes + (submeshData[k][3	] * bytesPerVert), 8)
-								rapi.rpgBindBoneWeightBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, bytesPerVert, 32 + addBytes + (submeshData[k][3] * bytesPerVert), 8)
+								rapi.rpgBindBoneIndexBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, bytesPerVert, 24 + addBytes + (vertsBefore * bytesPerVert), 8)
+								rapi.rpgBindBoneWeightBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, bytesPerVert, 32 + addBytes + (vertsBefore * bytesPerVert), 8)
 						else:
 							if positionIndex != -1:
-								rapi.rpgBindPositionBufferOfs(vertexBuffer, noesis.RPGEODATA_FLOAT, vertElemHeaders[positionIndex][1], (vertElemHeaders[positionIndex][1] * submeshData[k][3]))
+								rapi.rpgBindPositionBufferOfs(vertexBuffer, noesis.RPGEODATA_FLOAT, vertElemHeaders[positionIndex][1], (vertElemHeaders[positionIndex][1] * vertsBefore))
 							
 							if normalIndex != -1 and bNORMsEnabled:
 								if bDebugNormals and not bColorsEnabled:
-									rapi.rpgBindColorBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, vertElemHeaders[normalIndex][1], vertElemHeaders[normalIndex][2] + (vertElemHeaders[normalIndex][1] * submeshData[k][3]), 4)
+									rapi.rpgBindColorBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, vertElemHeaders[normalIndex][1], vertElemHeaders[normalIndex][2] + (vertElemHeaders[normalIndex][1] * vertsBefore), 4)
 								else:
-									rapi.rpgBindNormalBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, vertElemHeaders[normalIndex][1], vertElemHeaders[normalIndex][2] + (vertElemHeaders[normalIndex][1] * submeshData[k][3]))
+									rapi.rpgBindNormalBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, vertElemHeaders[normalIndex][1], vertElemHeaders[normalIndex][2] + (vertElemHeaders[normalIndex][1] * vertsBefore))
 									if bTANGsEnabled:
-										rapi.rpgBindTangentBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, vertElemHeaders[normalIndex][1], 4 + vertElemHeaders[normalIndex][2] + (vertElemHeaders[normalIndex][1] * submeshData[k][3]))
+										rapi.rpgBindTangentBufferOfs(vertexBuffer, noesis.RPGEODATA_BYTE, vertElemHeaders[normalIndex][1], 4 + vertElemHeaders[normalIndex][2] + (vertElemHeaders[normalIndex][1] * vertsBefore))
 							
 							if uvIndex != -1 and bUVsEnabled:
-								rapi.rpgBindUV1BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, vertElemHeaders[uvIndex][1], vertElemHeaders[uvIndex][2] + (vertElemHeaders[uvIndex][1] * submeshData[k][3]))
+								rapi.rpgBindUV1BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, vertElemHeaders[uvIndex][1], vertElemHeaders[uvIndex][2] + (vertElemHeaders[uvIndex][1] * vertsBefore))
 							if uv2Index != -1 and bUVsEnabled:
-								rapi.rpgBindUV2BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, vertElemHeaders[uv2Index][1], vertElemHeaders[uv2Index][2] + (vertElemHeaders[uv2Index][1] * submeshData[k][3]))
+								rapi.rpgBindUV2BufferOfs(vertexBuffer, noesis.RPGEODATA_HALFFLOAT, vertElemHeaders[uv2Index][1], vertElemHeaders[uv2Index][2] + (vertElemHeaders[uv2Index][1] * vertsBefore))
 							
-							#print (meshName, "has rigging:", bSkinningEnabled)
 							if weightIndex != -1 and bSkinningEnabled and bDoSkin:
 								rapi.rpgSetBoneMap(boneRemapTable)
-								rapi.rpgBindBoneIndexBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[weightIndex][1], vertElemHeaders[weightIndex][2] + (vertElemHeaders[weightIndex][1] * submeshData[k][3]), 8)
-								rapi.rpgBindBoneWeightBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[weightIndex][1], vertElemHeaders[weightIndex][2] + (vertElemHeaders[weightIndex][1] * submeshData[k][3]) + 8, 8)
+								if isSF6:
+									idxList = []
+									start = vertexStartIndex + vertElemHeaders[weightIndex][2] + (vertElemHeaders[weightIndex][1] * vertsBefore)
+									for v in range(numVerts):
+										bs.seek(start + vertElemHeaders[weightIndex][1] * v)
+										for bID in range(3):
+											idxList.append(bs.readBits(10))
+										bs.readBits(2)
+										for bID in range(3):
+											idxList.append(bs.readBits(10))
+										idxList.extend([0,0])
+									idxBuff = struct.pack("<" + 'H'*len(idxList), *idxList)
+									rapi.rpgBindBoneIndexBufferOfs(idxBuff, noesis.RPGEODATA_USHORT, 16, 0, 8)
+								else:
+									rapi.rpgBindBoneIndexBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[weightIndex][1], vertElemHeaders[weightIndex][2] + (vertElemHeaders[weightIndex][1] * vertsBefore), 8)
+								rapi.rpgBindBoneWeightBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[weightIndex][1], vertElemHeaders[weightIndex][2] + (vertElemHeaders[weightIndex][1] * vertsBefore) + 8, 8)
 								
 							if colorIndex != -1 and bColorsEnabled:
-								offs = vertElemHeaders[colorIndex][2] + (vertElemHeaders[colorIndex][1] * submeshData[k][3])
-								numVerts = submeshData[k+1][3] - submeshData[k][3] if k+1 < len(submeshData) else meshVertexInfo[j][4] - submeshData[k][3]
-								#print(len(vertexBuffer), colorIndex, numVerts, offs,  offs + numVerts, vertElemHeaders[colorIndex][1], submeshData[k][1], submeshData[k][3])
+								offs = vertElemHeaders[colorIndex][2] + (vertElemHeaders[colorIndex][1] * vertsBefore)
 								if offs + numVerts*4 < len(vertexBuffer):
 									rapi.rpgBindColorBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[colorIndex][1], offs, 4)
 								else:
 									print("WARNING:", meshName, "Color buffer would have been read out of bounds by provided indices", "\n	Buffer Size:", len(vertexBuffer), "\n	Required Size:", offs + numVerts*4)
 								
-						if submeshData[k][1] > 0:
-							bs.seek(faceBuffOffs + (submeshData[k][2] * 2))
-							indexBuffer = bs.readBytes(submeshData[k][1] * 2)
+						if numFaces > 0:
+							bs.seek(faceBuffOffs + (facesBefore * 2))
+							indexBuffer = bs.readBytes(numFaces * 2)
 							if bRenderAsPoints:
-								rapi.rpgCommitTriangles(None, noesis.RPGEODATA_USHORT, (meshVertexInfo[j][4] - (submeshData[k][3])), noesis.RPGEO_POINTS, 0x1)
+								rapi.rpgCommitTriangles(None, noesis.RPGEODATA_USHORT, (meshVertexInfo[j][4] - (vertsBefore)), noesis.RPGEO_POINTS, 0x1)
 							else:
 								rapi.rpgSetStripEnder(0x10000)
-								rapi.rpgCommitTriangles(indexBuffer, noesis.RPGEODATA_USHORT, submeshData[k][1], noesis.RPGEO_TRIANGLE, 0x1)
+								rapi.rpgCommitTriangles(indexBuffer, noesis.RPGEODATA_USHORT, numFaces, noesis.RPGEO_TRIANGLE, 0x1)
 								rapi.rpgClearBufferBinds()
 								
 				try:
@@ -2463,7 +2542,9 @@ class meshFile(object):
 			boneNames[bone.name] = True
 			
 		return mdlList
-		
+
+isSF6 = False
+
 def meshLoadModel(data, mdlList):
 	mesh = meshFile(data)
 	mdlList = mesh.loadMeshFile(mdlList)
@@ -2654,7 +2735,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v3.0 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v3.02 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2899,8 +2980,9 @@ def meshWriteModel(mdl, bs):
 			bAddNumbers = True
 			
 		elif bAddBoneNumbers == 2:
-			if len(mdl.bones) > 256:
-				print ("Model has more than 256 bones, auto-enabling bone numbers...")
+			maxBones = 1024 if isSF6 else 256
+			if len(mdl.bones) > maxBones:
+				print ("Model has more than", maxBones, "bones, auto-enabling bone numbers...")
 				bAddNumbers = True
 			else:
 				for bone in mdl.bones:
