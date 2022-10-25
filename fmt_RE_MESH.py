@@ -12,7 +12,7 @@ bRE2Export 					= True					#Enable or disable export of mesh.1808312334 and tex.
 bRE3Export 					= True					#Enable or disable export of mesh.1902042334 and tex.190820018 from the export list
 bDMCExport 					= True					#Enable or disable export of mesh.1808282334 and tex.11 from the export list
 bRE7Export 					= True					#Enable or disable export of mesh.32 and tex.8 from the export list
-bREVExport 					= True					#Enable or disable export of mesh.2102020001 from the export list (and tex.30)
+bREVExport 					= True					#Enable or disable export of mesh.2102020001 from the export list (and tex.31)
 bRE8Export 					= True					#Enable or disable export of mesh.2101050001 from the export list (and tex.30)
 bMHRiseExport 				= False					#Enable or disable export of mesh.2008058288 from the export list (and tex.28) 
 bMHRiseSunbreakExport 		= True					#Enable or disable export of mesh.2109148288 from the export list (and tex.28)
@@ -143,8 +143,7 @@ def registerNoesisTypes():
 		noesis.setHandlerTypeCheck(handle, meshCheckType)
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
-		
-		
+			
 	if bMHRiseExport or bMHRiseSunbreakExport:
 		handle = noesis.register("MHRise Texture [PC]", ".28;.stm")
 		noesis.setHandlerTypeCheck(handle, texCheckType)
