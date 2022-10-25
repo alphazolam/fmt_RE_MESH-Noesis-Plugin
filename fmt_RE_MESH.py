@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v3.03 (October 24, 2022)
+#v3.03b (October 25, 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -1441,7 +1441,7 @@ def forceFindTexture(FileName, startExtension=""):
 			ext = ".28"
 		elif i == 8:
 			sGameName = "REVerse"
-			ext = ".30"
+			ext = ".31"
 
 		texFile = LoadExtractedDir() + FileName + ext
 		#print ("texFile:", texFile)
@@ -2748,9 +2748,10 @@ def meshWriteModel(mdl, bs):
 		sGameName = "DMC5"
 	elif ext.find(".1902042334") != -1:
 		sGameName = "RE3"
-	elif ext.find(".2102020001") != -1:
+	elif ext.find(".2010231143") != -1:
 		sGameName = "REVerse"
-	elif ext.find(".2101050001") != -1:
+		RERTBytes = 8
+	elif ext.find(".2102020001") != -1:
 		sGameName = "RE8"
 	if (ext.find(".2109108288") != -1) or (ext.find(".220128762") != -1): #RE2/RE3RT, and RE7RT
 		sGameName = "RERT"
