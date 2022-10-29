@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v3.03b (October 25, 2022)
+#v3.03c (October 29, 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -2053,7 +2053,7 @@ class meshFile(object):
 			sGameName = "DMC5"
 		elif sInputName.find(".1902042334") != -1:  #386270720
 			sGameName = "RE3"
-		elif sInputName.find(".2102020001") != -1:
+		elif meshVersion == 21011200 or sInputName.find(".2102020001") != -1:
 			sGameName = "REVerse"
 		elif meshVersion == 2020091500 or sInputName.find(".2101050001") != -1:
 			sGameName = "RE8"
@@ -2747,10 +2747,9 @@ def meshWriteModel(mdl, bs):
 		sGameName = "DMC5"
 	elif ext.find(".1902042334") != -1:
 		sGameName = "RE3"
-	elif ext.find(".2010231143") != -1:
-		sGameName = "REVerse"
-		RERTBytes = 8
 	elif ext.find(".2102020001") != -1:
+		sGameName = "REVerse"
+	elif ext.find(".2101050001") != -1:
 		sGameName = "RE8"
 	if (ext.find(".2109108288") != -1) or (ext.find(".220128762") != -1): #RE2/RE3RT, and RE7RT
 		sGameName = "RERT"
@@ -3325,6 +3324,8 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(386270720) #version no
 		elif sGameName == "RE8":
 			bs.writeUInt(2020091500)
+		elif sGameName == "REVerse":
+			bs.writeUInt(21011200)
 		elif sGameName == "RE7":
 			bs.writeUInt(352921600)
 		elif sGameName == "MHRise":
@@ -3341,7 +3342,7 @@ def meshWriteModel(mdl, bs):
 		#print ("this model nodes:", len(mdl.bones) * bDoSkin + numMats)
 		bs.writeUShort(len(mdl.bones) * bDoSkin + numMats) #Node Count
 		bs.writeUInt(0) #LODGroupHash
-		LOD1Offs = 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise") else 136
+		LOD1Offs = 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "REVerse") else 136
 		
 		bs.writeUInt64(LOD1Offs) #LODs address
 		bs.writeUInt64(0) #Shadow LODs address
