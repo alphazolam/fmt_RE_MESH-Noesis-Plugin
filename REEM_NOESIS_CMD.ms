@@ -4,7 +4,7 @@
 	--Last Release: October 24 2022
 	--Authors: alphaZomega, mariokart64n
 	
-	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
+	local noesis_path = 		"D:\\__MODDING\\_Noesis\\Noesis.exe"
 	
 	local re2_pak_location = 	"F:\\modmanager\\REtool\\RE2_chunk_000\\natives\\x64\\"
 	local re3_pak_location = 	"F:\\modmanager\\REtool\\RE3_chunk_000\\natives\\stm\\"
@@ -839,7 +839,7 @@
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
