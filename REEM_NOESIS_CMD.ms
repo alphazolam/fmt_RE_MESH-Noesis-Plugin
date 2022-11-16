@@ -812,6 +812,7 @@
 			--) else messagebox "Failed to Locate Extracted Pak!"
 		)
 		
+		
 		/*
 			--Dictionary example
 			dic = losDic()  
@@ -1177,4 +1178,5 @@
 		)
 	)
 	createdialog formNoesisCMD
+	cui.RegisterDialogBar formNoesisCMD style:#(#cui_dock_all, #cui_floatable, #cui_handles)
 )
