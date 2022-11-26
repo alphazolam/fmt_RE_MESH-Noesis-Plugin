@@ -1,5 +1,5 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v3.02 (October 8, 2022)
+#v3.03c (October 29, 2022)
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox 
 
@@ -12,7 +12,7 @@ bRE2Export 					= True					#Enable or disable export of mesh.1808312334 and tex.
 bRE3Export 					= True					#Enable or disable export of mesh.1902042334 and tex.190820018 from the export list
 bDMCExport 					= True					#Enable or disable export of mesh.1808282334 and tex.11 from the export list
 bRE7Export 					= True					#Enable or disable export of mesh.32 and tex.8 from the export list
-bREVExport 					= False					#Enable or disable export of mesh.2010231143 from the export list (and tex.30)
+bREVExport 					= True					#Enable or disable export of mesh.2102020001 from the export list (and tex.31)
 bRE8Export 					= True					#Enable or disable export of mesh.2101050001 from the export list (and tex.30)
 bMHRiseExport 				= False					#Enable or disable export of mesh.2008058288 from the export list (and tex.28) 
 bMHRiseSunbreakExport 		= True					#Enable or disable export of mesh.2109148288 from the export list (and tex.28)
@@ -82,13 +82,13 @@ def registerNoesisTypes():
 		noesis.addOption(handle, "-vfx", "Export as VFX mesh", 0)
 		return handle
 		
-	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2010231143;.2101050001;.2109108288;.2109148288;.220128762;.220721329;.32;.NewMesh")
+	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2010231143;.2101050001;.2109108288;.2109148288;.220128762;.220721329;.2102020001;.32;.NewMesh")
 	noesis.setHandlerTypeCheck(handle, meshCheckType)
 	noesis.setHandlerLoadModel(handle, meshLoadModel)
 	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
 	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
 	
-	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.34;.35;.36")
+	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36")
 	noesis.setHandlerTypeCheck(handle, texCheckType)
 	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
 
@@ -126,23 +126,24 @@ def registerNoesisTypes():
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
 		
-	if bREVExport or bRE8Export:
-		handle = noesis.register("RE8 / ReVerse Texture [PC]", ".30")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		
-	if bREVExport:
-		handle = noesis.register("ReVerse MESH", (".2010231143"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-		
 	if bRE8Export:
+		handle = noesis.register("RE8 Texture [PC]", ".30")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
 		handle = noesis.register("RE8 MESH", (".2101050001"))
 		noesis.setHandlerTypeCheck(handle, meshCheckType)
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
 		
+	if bREVExport:
+		handle = noesis.register("REVerse Texture [PC]", ".31")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA)
+		handle = noesis.register("ReVerse MESH", (".2102020001"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+			
 	if bMHRiseExport or bMHRiseSunbreakExport:
 		handle = noesis.register("MHRise Texture [PC]", ".28;.stm")
 		noesis.setHandlerTypeCheck(handle, texCheckType)
@@ -237,7 +238,7 @@ formats = {
 	"DMC5":			{ "modelExt": ".1808282334", "texExt": ".11", 		 "mmtrExt": ".1808168797", "nDir": "x64", "mdfExt": ".mdf2.10" },
 	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19" },
 	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23" },
-	"REVerse":		{ "modelExt": ".2010231143", "texExt": ".30", 		 "mmtrExt": ".2011178797", "nDir": "stm", "mdfExt": ".mdf2.19" },
+	"REVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20" },
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21" },
 	"SF6": 			{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31" },
@@ -1439,7 +1440,7 @@ def forceFindTexture(FileName, startExtension=""):
 			ext = ".28"
 		elif i == 8:
 			sGameName = "REVerse"
-			ext = ".30"
+			ext = ".31"
 
 		texFile = LoadExtractedDir() + FileName + ext
 		#print ("texFile:", texFile)
@@ -2052,7 +2053,7 @@ class meshFile(object):
 			sGameName = "DMC5"
 		elif sInputName.find(".1902042334") != -1:  #386270720
 			sGameName = "RE3"
-		elif sInputName.find(".2010231143") != -1:
+		elif meshVersion == 21011200 or sInputName.find(".2102020001") != -1:
 			sGameName = "REVerse"
 		elif meshVersion == 2020091500 or sInputName.find(".2101050001") != -1:
 			sGameName = "RE8"
@@ -2746,7 +2747,7 @@ def meshWriteModel(mdl, bs):
 		sGameName = "DMC5"
 	elif ext.find(".1902042334") != -1:
 		sGameName = "RE3"
-	elif ext.find(".2010231143") != -1:
+	elif ext.find(".2102020001") != -1:
 		sGameName = "REVerse"
 	elif ext.find(".2101050001") != -1:
 		sGameName = "RE8"
@@ -3323,6 +3324,8 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(386270720) #version no
 		elif sGameName == "RE8":
 			bs.writeUInt(2020091500)
+		elif sGameName == "REVerse":
+			bs.writeUInt(21011200)
 		elif sGameName == "RE7":
 			bs.writeUInt(352921600)
 		elif sGameName == "MHRise":
@@ -3339,7 +3342,7 @@ def meshWriteModel(mdl, bs):
 		#print ("this model nodes:", len(mdl.bones) * bDoSkin + numMats)
 		bs.writeUShort(len(mdl.bones) * bDoSkin + numMats) #Node Count
 		bs.writeUInt(0) #LODGroupHash
-		LOD1Offs = 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise") else 136
+		LOD1Offs = 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "REVerse") else 136
 		
 		bs.writeUInt64(LOD1Offs) #LODs address
 		bs.writeUInt64(0) #Shadow LODs address

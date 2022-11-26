@@ -1,15 +1,16 @@
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.39
-	--Last Release: October 8 2022
+	--Version: v0.40
+	--Last Release: October 24 2022
 	--Authors: alphaZomega, mariokart64n
 	
-	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
+	local noesis_path = 		"D:\\__MODDING\\_Noesis\\Noesis.exe"
 	
 	local re2_pak_location = 	"F:\\modmanager\\REtool\\RE2_chunk_000\\natives\\x64\\"
 	local re3_pak_location = 	"F:\\modmanager\\REtool\\RE3_chunk_000\\natives\\stm\\"
 	local re7_pak_location = 	"F:\\modmanager\\REtool\\RE7_chunk_000\\natives\\x64\\"
 	local re8_pak_location = 	"F:\\modmanager\\REtool\\RE8_chunk_000\\natives\\stm\\"
+	local reve_pak_location = 	"F:\\modmanager\\REtool\\REVE_chunk_000\\natives\\stm\\"
 	local re2rt_pak_location = 	"F:\\modmanager\\REtool\\RE2rt_chunk_000\\natives\\stm\\"
 	local re3rt_pak_location = 	"F:\\modmanager\\REtool\\RE3rt_chunk_000\\natives\\stm\\"
 	local re7rt_pak_location = 	"F:\\modmanager\\REtool\\RE7rt_chunk_000\\natives\\stm\\"
@@ -97,8 +98,8 @@
 		)  
 	) 
 	
-	local gamesList = #( "MHRSunbreak", "RE2", "RE3", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6")
-	local currentItem = "MHRSunbreak"
+	local gamesList = #( "REVE", "MHRSunbreak", "RE2", "RE3", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6")
+	local currentItem = "REVE"
 	local currentItemIdx = 1
 	local currentItemIdx2 = 1
 	local games_to_mdfExts = losDic()
@@ -116,6 +117,7 @@
 				"MHRise": ".19"
 				"MHRSunbreak": ".23"
 				"SF6": ".31"
+				"REVE": ".20"
 				default: ""
 			)
 		)
@@ -414,7 +416,7 @@
 	try(destroydialog formNoesisCMD; clearlistener())catch()
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.39" (
+	rollout formNoesisCMD "REEM Noesis 0.40" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
@@ -507,6 +509,7 @@
 					"MHRise": ".mesh.2008058288"
 					"MHRSunbreak": ".mesh.2109148288"
 					"SF6": ".mesh.220721329"
+					"REVE": ".mesh.2102020001"
 					default: ""
 				)
 			current_pak_location = case currentItem of 
@@ -522,6 +525,7 @@
 					"MHRise": mhrise_pak_location
 					"MHRSunbreak": mhrise_pak_location
 					"SF6": sf6_pak_location
+					"REVE": reve_pak_location
 					default: ""
 				)
 			
@@ -627,7 +631,7 @@
 						
 						if thisExt != lastExt then (
 							lastExt = thisExt
-							changeCurrentGame ( findItem #(".2109148288", ".1808312334", ".1902042334", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".220721329") lastExt)
+							changeCurrentGame ( findItem #(".2109148288", ".1808312334", ".1902042334", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".220721329", ".2102020001") lastExt)
 						)
 						
 						if chk_bnNumbers.checked then (				
@@ -756,6 +760,7 @@
 					"RE8": ".mesh.2101050001"
 					"MHRise": ".mesh.2008058288"
 					"MHRSunbreak": ".mesh.2109148288"
+					"REVE": ".mesh.2102020001"
 					default: ""
 				)
 			current_extension2 = replace lbl_currentExt2.caption 1 5 ""
@@ -807,6 +812,7 @@
 			--) else messagebox "Failed to Locate Extracted Pak!"
 		)
 		
+		
 		/*
 			--Dictionary example
 			dic = losDic()  
@@ -834,7 +840,7 @@
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
@@ -855,6 +861,7 @@
 						"RE2 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
 						"RE3 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
 						"SF6" : getSaveFileName types:"RT(*.220721329)|*.220721329|"
+						"REVE" : getSaveFileName types:"REVE(*.2102020001)|*.2102020001"
 						default: getSaveFileName types:" \
 							DMC5(*.1808282334)|*.1808282334| \
 							RE2(*.1808312334)|*.1808312334| \
@@ -866,10 +873,11 @@
 							RE3 RT(*.2109108288)|*.2109108288| \
 							MHRise(*.2008058288)|*.2008058288| \
 							MHRSunbreak(*.2109148288)|*.2109148288| \
-							SF6(*.220721329)|*.220721329|"
+							SF6(*.220721329)|*.220721329| \
+							REVE(*.2102020001)|*.2102020001| "
 					) 
 				) else
-					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334|All|*.*|"
+					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.2102020001|All|*.*|"
 					
 				if cmd != undefined and cmd != "" then (
 					local fbx_path = (getFilenamePath cmd) + (getFilenameFile (getFilenameFile cmd))
@@ -1170,4 +1178,5 @@
 		)
 	)
 	createdialog formNoesisCMD
+	cui.RegisterDialogBar formNoesisCMD style:#(#cui_dock_all, #cui_floatable, #cui_handles)
 )
