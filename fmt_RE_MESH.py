@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
-#v3.03c (October 29, 2022)
+#v3.03e (November 27, 2022)
 #Authors: alphaZomega, Gh0stblade 
-#Special thanks: Chrrox 
+#Special thanks: Chrrox, SilverEzredes 
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -615,41 +615,20 @@ def readTextureData(texData, mipWidth, mipHeight, format):
 	
 	fmtName = tex_format_list[format] if format in tex_format_list else ""
 	
-	if format == 29 or  format == 28:
-		#fmtName = ("r32g32b32a32")
-		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r32g32b32a32", 1)
-	elif format == 61:
-		#fmtName = ("r8")
-		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r8")
-	elif format == 10:
-		#fmtName = ("r16g16b16a16")
-		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r16g16b16a16")
-	elif format == 2:
-		#fmtName = ("r32g32b32a32")
-		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r32g32b32a32", 1)
-	#elif format == 28:
-	#	print ("FOURCC_ATI1")
-	#	texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_ATI1)
 	if format == 71 or format == 72: #ATOS
-		#fmtName = ("FOURCC_DXT1")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_DXT1)
 	elif format == 77 or format == 78 or fmtName.find("BC3") != -1: #BC3
-		#fmtName = ("FOURCC_BC3")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC3)
 	elif format == 80 or fmtName.find("BC4") != -1: #BC4 wetmasks
-		#fmtName = ("FOURCC_BC4")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC4)
 	elif format == 83 or fmtName.find("BC5") != -1: #BC5
-		#fmtName = ("FOURCC_BC5")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC5)
 		texData = rapi.imageEncodeRaw(texData, mipWidth, mipHeight, "r16g16")
 		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, "r16g16")
 	elif format == 95 or format == 96 or fmtName.find("BC6") != -1:
-		#fmtName = ("FOURCC_BC6H")
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC6H)
 	elif format == 98 or format == 99 or fmtName.find("BC7") != -1:
 		texData = rapi.imageDecodeDXT(texData, mipWidth, mipHeight, noesis.FOURCC_BC7)
-		#fmtName = ("FOURCC_BC7")
 	elif re.search("[RB]\d\d?", fmtName):
 		fmtName = fmtName.split("_")[0].lower()
 		texData = rapi.imageDecodeRaw(texData, mipWidth, mipHeight, fmtName)
@@ -2410,6 +2389,9 @@ class meshFile(object):
 								rapi.rpgBindBoneIndexBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, bytesPerVert, 24 + addBytes + (vertsBefore * bytesPerVert), 8)
 								rapi.rpgBindBoneWeightBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, bytesPerVert, 32 + addBytes + (vertsBefore * bytesPerVert), 8)
 						else:
+							
+							thisNumVerts = numVerts - vertsBefore
+							
 							if positionIndex != -1:
 								rapi.rpgBindPositionBufferOfs(vertexBuffer, noesis.RPGEODATA_FLOAT, vertElemHeaders[positionIndex][1], (vertElemHeaders[positionIndex][1] * vertsBefore))
 							
@@ -2447,11 +2429,12 @@ class meshFile(object):
 								
 							if colorIndex != -1 and bColorsEnabled:
 								offs = vertElemHeaders[colorIndex][2] + (vertElemHeaders[colorIndex][1] * vertsBefore)
-								if offs + numVerts*4 < len(vertexBuffer):
+								if offs + thisNumVerts*4 <= len(vertexBuffer):
 									rapi.rpgBindColorBufferOfs(vertexBuffer, noesis.RPGEODATA_UBYTE, vertElemHeaders[colorIndex][1], offs, 4)
 								else:
-									print("WARNING:", meshName, "Color buffer would have been read out of bounds by provided indices", "\n	Buffer Size:", len(vertexBuffer), "\n	Required Size:", offs + numVerts*4)
-								
+									print(offs, thisNumVerts*4, thisNumVerts)
+									print("WARNING:", meshName, "Color buffer would have been read out of bounds by provided indices", "\n	Buffer Size:", len(vertexBuffer), "\n	Required Size:", offs + thisNumVerts*4)
+									
 						if numFaces > 0:
 							bs.seek(faceBuffOffs + (facesBefore * 2))
 							indexBuffer = bs.readBytes(numFaces * 2)
@@ -2472,14 +2455,7 @@ class meshFile(object):
 				mdl.setBones(self.boneList)
 				mdl.setModelMaterials(NoeModelMaterials(self.texList, self.matList))
 				mdlList.append(mdl)
-				'''
-				#check vertex component's normals on import (MHRise Sunbreak em077_00.mesh)::
-				for m, mesh in enumerate(mdl.meshes):
-					for u, uv in enumerate(mesh.uvs):
-						if uv[0] == 0.79638671875  and uv[1] == 0.830078125:
-							print(mesh.name, len(mesh.positions), "Vert", u, "\nPosition:", mesh.positions[u][0], mesh.positions[u][1], mesh.positions[u][2])
-							print("Normal:",   mesh.tangents[u][0], mesh.tangents[u][1], mesh.tangents[u][2], mesh.tangents[u][3])'''
-							
+				
 				if not bImportAllLODs:
 					break
 				
@@ -2737,7 +2713,7 @@ def meshWriteModel(mdl, bs):
 	def dot(v1, v2):
 		return sum(x*y for x,y in zip(v1,v2))	
 		
-	print ("		----RE Engine MESH Export v3.02 by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
+	print ("		----RE Engine MESH Export v3.03e by alphaZomega----\nOpen fmt_RE_MESH.py in your Noesis plugins folder to change global exporter options.\nExport Options:\n Input these options in the `Advanced Options` field to use them, or use in CLI mode\n -flip  =  OpenGL / flipped handedness (fixes seams and inverted lighting on some models)\n -bones = save new skeleton from Noesis to the MESH file\n -bonenumbers = Export with bone numbers, to save a new bone map\n -meshfile [filename]= Input the location of a [filename] to export over that file\n -noprompt = Do not show any prompts\n -rewrite = save new MainMesh and SubMesh order (also saves bones)\n -vfx = Export as a VFX mesh\n -b = Batch conversion mode\n -adv = Show Advanced Options dialog window\n") #\n -lod = export with additional LODGroups") # 
 	
 	ext = os.path.splitext(rapi.getOutputName())[1]
 	RERTBytes = 0
@@ -2755,7 +2731,7 @@ def meshWriteModel(mdl, bs):
 		sGameName = "RERT"
 		RERTBytes = 8
 	elif ext.find(".2109148288") != -1: #MHRise Sunbreak
-		#sGameName = "MHRise"
+		realGameName = "MHRise Sunbreak"
 		sGameName = "RERT"
 		RERTBytes = 8
 	elif ext.find(".2008058288") != -1: #Vanilla MHRise
@@ -2766,7 +2742,7 @@ def meshWriteModel(mdl, bs):
 		bReWrite = False #currently disabled for RE7
 		return 0
 		
-	print ("\n				  ", sGameName, "\n")
+	print ("\n				  ", realGameName if 'realGameName' in locals() else sGameName, "\n")
 	
 	bDoUV2 = False
 	bDoSkin = False
@@ -2904,10 +2880,14 @@ def meshWriteModel(mdl, bs):
 			else:
 				submeshes.append(copy.copy(obj))
 		if bReWrite and not bDoSkin: #if still true
-			for mesh in submeshes:
-				if len(mesh.weights) > 0:
-					bDoSkin = True
-					break
+			submeshBoneCount = 0
+			for bone in mdl.bones:
+				for mesh in submeshes:
+					if bone.name == mesh.name: #fbx is stupid and adds submeshes as bones to boneless meshes
+						submeshBoneCount = submeshBoneCount + 1
+						break
+			if len(mdl.bones) > 0 and submeshBoneCount != len(submeshes):
+				bDoSkin = True
 					
 	#Prompt for source mesh to export over / export options:
 	def showOptionsDialog():
