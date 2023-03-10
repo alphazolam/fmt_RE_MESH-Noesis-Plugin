@@ -1,14 +1,15 @@
 try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.42
-	--Last Release: March 9, 2023
+	--Version: v0.43
+	--Last Release: March 10, 2023
 	--Authors: alphaZomega, mariokart64n
 	
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
 	
 	local re2_pak_location = 	"F:\\modmanager\\REtool\\RE2_chunk_000\\natives\\x64\\"
 	local re3_pak_location = 	"F:\\modmanager\\REtool\\RE3_chunk_000\\natives\\stm\\"
+	local re4_pak_location = 	"F:\\modmanager\\REtool\\RE4_chunk_000\\natives\\stm\\"
 	local re7_pak_location = 	"F:\\modmanager\\REtool\\RE7_chunk_000\\natives\\x64\\"
 	local re8_pak_location = 	"F:\\modmanager\\REtool\\RE8_chunk_000\\natives\\stm\\"
 	local reve_pak_location = 	"F:\\modmanager\\REtool\\REVE_chunk_000\\natives\\stm\\"
@@ -440,7 +441,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.42" (
+	rollout formNoesisCMD "REEM Noesis 0.43" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
@@ -545,7 +546,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					"RE3 RT": re3rt_pak_location
 					"RE2": re2_pak_location
 					"RE3": re3_pak_location
-					"RE4": ".mesh.221108797"
+					"RE4": re4_pak_location
 					"DMC5": dmc5_pak_location
 					"RE7": re7_pak_location
 					"RE7 RT": re7rt_pak_location
@@ -888,7 +889,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						"RE2": getSaveFileName types:"RE2(*.1808312334)|*.1808312334|"
 						"DMC5": getSaveFileName types:"DMC5(*.1808282334)|*.1808282334|"
 						"RE3": getSaveFileName types:"RE3(*.1902042334)|*.1902042334|"
-						"RE4": getSaveFileName types:"RE3(*.221108797)|*.221108797|"
+						"RE4": getSaveFileName types:"RE4(*.221108797)|*.221108797|"
 						"RE7": getSaveFileName types:"RE7(*.32)|*.32|"
 						"RE7 RT": getSaveFileName types:"RE7 RT(*.220128762)|*.220128762|"
 						"RE8": getSaveFileName types:"RE8(*.2101050001)|*.2101050001|"

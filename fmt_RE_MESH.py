@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.1 (March 9, 2023)"
+Version = "v3.11 (March 10, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -271,6 +271,7 @@ extToFormat["190820018"] = extToFormat["10"]
 extToFormat["30"] = extToFormat["34"]
 extToFormat["35"] = extToFormat["34"]
 extToFormat["28"] = extToFormat["34"]
+extToFormat["143221013"] = extToFormat["34"]
 extToFormat["28.stm"] = extToFormat["28"]
 
 
@@ -903,13 +904,20 @@ def findSourceTexFile(version_no, outputName=None):
 	newTexName = outputName or rapi.getOutputName().lower()
 	while newTexName.find("out.") != -1: 
 		newTexName = newTexName.replace("out.",".")
-	newTexName =  newTexName.replace(".dds","").replace(".tex","").replace(".10","").replace(".190820018","").replace(".11","").replace(".8","").replace(".28","").replace(".34","").replace(".35","").replace(".30","").replace(".jpg","").replace(".png","").replace(".tga","").replace(".gif","")
+	newTexName =  newTexName.replace(".dds","").replace(".tex","").replace(".10","").replace(".190820018","").replace(".143221013","").replace(".11","").replace(".8","").replace(".28","").replace(".34","").replace(".35","").replace(".30","").replace(".jpg","").replace(".png","").replace(".tga","").replace(".gif","")
 	ext = ".tex." + str(version_no)
 	if not rapi.checkFileExists(newTexName + ext):
 		for other_ext, subDict in extToFormat.items():
 			if rapi.checkFileExists(newTexName + ".tex." + other_ext):
 				ext = ".tex." + other_ext
 	return newTexName + ext, ext
+	
+def convertTexVersion(version_no): #because RE3R and RE4R randomly decide to use timestamps for version numbers, which doesnt work well with using the others as versions
+	if version_no == 143221013:
+		return 36
+	if version_no == 190820018:
+		return 10
+	return version_no
 
 def texWriteRGBA2(data, width, height, bs, version_no):
 	sourceFile = findSourceTexFile(10)
@@ -975,8 +983,10 @@ def texWriteRGBA(data, width, height, bs):
 	fHeight = f.readUShort()
 	reVerseSize = 0
 	
+	version = convertTexVersion(version)
+	
 	f.seek(14)
-	if version  > 27 and version < 1000:
+	if version  > 27:
 		reVerseSize = 8
 		numImages = f.readUByte()
 		oneImgMipHdrSize = f.readUByte()
@@ -1032,8 +1042,9 @@ def texWriteRGBA(data, width, height, bs):
 	elif og and ddsMagic == 5784916: #TEX
 		bTexAsSource = True
 		og.seek(4)
-		ogVersion = og.readUInt()
-		if ((ogVersion > 27 and ogVersion < 1000) and int(os.path.splitext(rapi.getOutputName())[1][1:]) < 27) or ((ogVersion < 27 and int(os.path.splitext(rapi.getOutputName())[1][1:]) > 27) and int(os.path.splitext(rapi.getOutputName())[1][1:])  < 1000):
+		ogVersion = convertTexVersion(og.readUInt())
+		
+		if ((ogVersion > 27) and int(os.path.splitext(rapi.getOutputName())[1][1:]) < 27) or ((ogVersion < 27 and int(os.path.splitext(rapi.getOutputName())[1][1:]) > 27)):
 			print("\nWARNING: Source tex version does not match your output tex version\n	Selected Output:      tex" + str(os.path.splitext(rapi.getOutputName())[1]), "\n	Source Tex version: tex." + str(ogVersion) + "\n")
 		og.seek(8)
 		ogWidth = og.readUShort()
@@ -1044,7 +1055,7 @@ def texWriteRGBA(data, width, height, bs):
 		og.seek(14)
 		
 		ogHeaderSize = og.readUByte() * 16 + 32
-		if ogVersion  > 27 and ogVersion < 1000: 
+		if ogVersion  > 27: 
 			ogHeaderSize = 40 + og.readUByte()
 		og.seek(16)
 		srcType = og.readUInt()  
@@ -1180,7 +1191,7 @@ def texWriteRGBA(data, width, height, bs):
 			bs.seek(8)
 			bs.writeUShort(width)
 			bs.writeUShort(height)
-			if version  > 27 and version < 1000:
+			if version  > 27:
 				bs.seek(15)
 				bs.writeUByte(numMips * 16)
 			else:
@@ -1566,7 +1577,7 @@ class openOptionsDialogImportWindow:
 		if self.create(width, height):
 			self.noeWnd.setFont("Futura", 14)
 			
-			self.noeWnd.createStatic("Files from:", 5, 5, width-20, 20)
+			self.noeWnd.createStatic("Motlist files from:", 5, 5, width-20, 20)
 			index = self.noeWnd.createEditBox(5, 25, width-20, 45, dialogOptions.currentDir, self.inputCurrentDirEditBox) #EB
 			self.currentDirEditBox = self.noeWnd.getControlByIndex(index)
 			
@@ -1625,7 +1636,7 @@ class openOptionsDialogImportWindow:
 		if self.create(width, height):
 			self.noeWnd.setFont("Futura", 14)
 			
-			self.noeWnd.createStatic("Files from:", 5, 45, width-20, 20)
+			self.noeWnd.createStatic("Mesh files from:", 5, 45, width-20, 20)
 			index = self.noeWnd.createEditBox(5, 65, width-20, 45, dialogOptions.currentDir, self.inputCurrentDirEditBox) #EB
 			self.currentDirEditBox = self.noeWnd.getControlByIndex(index)
 			
@@ -4529,8 +4540,10 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(2007158797)
 		elif sGameName == "RERT":
 			bs.writeUInt(21041600)
-		elif isSF6 or True:
-			bs.writeUInt(220705151)
+		elif isSF6 == 2: 
+			bs.writeUInt(220822879) #RE4R
+		elif isSF6 == True or True:
+			bs.writeUInt(220705151) #SF6 and all others
 			
 		bs.writeUInt(0) #Filesize
 		bs.writeUInt(0) #LODGroupHash
@@ -5078,7 +5091,7 @@ def meshWriteModel(mdl, bs):
 		bs.seek(vBuffHdrOffs+skipAmt)
 	
 	if isSF6:
-		facesDiff = (80 + 8*(vertElemCountB if not bReWrite else vertElemCount))
+		facesDiff = 0 if not bReWrite else (80 + 8*vertElemCount)
 		bs.writeUInt(faceDataEnd - vertexPosStart) #total buffer size
 		#print("faces offset", bs.tell(), vertexDataEnd, newVertBuffHdrOffs, facesDiff, vertexDataEnd - newVertBuffHdrOffs - facesDiff)
 		bs.writeUInt(vertexDataEnd - newVertBuffHdrOffs - facesDiff) #face buffer offset
