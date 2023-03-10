@@ -1,8 +1,8 @@
 try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.41
-	--Last Release: October 24 2022
+	--Version: v0.42
+	--Last Release: March 9, 2023
 	--Authors: alphaZomega, mariokart64n
 	
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
@@ -99,10 +99,10 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		)  
 	) 
 	
-	local gamesList = #( "REVerse", "MHRSunbreak", "RE2", "RE3", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6")
-	local currentItem = "MHRSunbreak"
-	local currentItemIdx = 2
-	local currentItemIdx2 = 2
+	local gamesList = #( "REVerse", "MHRSunbreak", "RE2", "RE3", "RE4", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6")
+	local currentItem = "RE4"
+	local currentItemIdx = 5
+	local currentItemIdx2 = 5
 	local games_to_mdfExts = losDic()
 	
 	for key in gamesList do
@@ -110,6 +110,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 			case key of (
 				"RE2 RT": ".21"
 				"RE3 RT": ".21"
+				"RE4": 	".32"
 				"RE2": ".10"
 				"DMC5": ".10"
 				"RE3": ".13"
@@ -394,6 +395,27 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		)
 		bones
 	)	
+	
+	fn selectSkinSkeleton nodes = (
+		local originalSelection = selection as array
+		for node in nodes do (
+			local bones = collectSkinBones node
+			--join originalSelection bones
+			--select originalSelection
+			select bones
+			root = bones[1]
+			for bone in bones do (
+				bn = bone
+				while bn.parent != root and bn.parent != undefined do (
+					bn = bn.parent
+					selectmore bn
+					selectmore bn.children
+				)
+			)
+			join originalSelection selection
+		)
+		select originalSelection
+	)
 
 	fn selectSkeleton node = (
 		local originalSelection = selection as array
@@ -418,7 +440,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.41" (
+	rollout formNoesisCMD "REEM Noesis 0.42" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
@@ -428,12 +450,14 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 			checkbox chk_fbxOptimize "Optimize FBX" checked:true 
 			--checkbox chk_importMDF "Import Materials" checked:false
 			checkbox chk_folder "Import Folder" checked:false align:#left
+			checkbox chk_populateBones "Populate Bones Lists" checked:false align:#left
 			button btn_import_SCN "Import SCN File" tooltip:"Tries to load positioned mesh files from a SCN file"
 		)
 		group "Export" (
 			button btn_export "Export to Game" align:#center
 			checkbox chk_flipHandedness "DirectX handedness" checked:true align:#left
 			checkbox chk_doVFX "Export as VFX Mesh" checked:false align:#left
+			checkbox chk_manualBoneSelect "Select Bones Manually" checked:false align:#left
 			checkbox chk_showOptions "Show Advanced Options" checked:false align:#left
 			checkbox chk_writeBones "Write skeleton" checked:true align:#left
 			checkbox chk_reWrite "ReWrite MESH" checked:true align:#left
@@ -504,6 +528,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					"RE3 RT": ".mesh.2109108288"
 					"RE2": ".mesh.1808312334"
 					"RE3": ".mesh.1902042334"
+					"RE4": ".mesh.221108797"
 					"DMC5": ".mesh.1808282334"
 					"RE7": ".mesh.32"
 					"RE7 RT": ".mesh.220128762"
@@ -520,6 +545,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					"RE3 RT": re3rt_pak_location
 					"RE2": re2_pak_location
 					"RE3": re3_pak_location
+					"RE4": ".mesh.221108797"
 					"DMC5": dmc5_pak_location
 					"RE7": re7_pak_location
 					"RE7 RT": re7rt_pak_location
@@ -636,67 +662,69 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						if thisExt != lastExt then (
 							lastExt = thisExt
 							--This list must have the same order as gamesList:
-							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".220721329") lastExt)
+							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".220721329") lastExt) 
 						)
 						
 						if chk_bnNumbers.checked then (				
 								
-							with redraw off (
-								local objSelected = selection as array
-								if setCoords != undefined and not already_imported then
-									names_to_objects.setK key objSelected 
-									
-								local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
-								local bones = for obj in objSelected where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj 
-								for bone in bones do hide bone
-								container = Point size:1.0
-								local uniqueNames = #(); local mainmeshes = #()
-								container.name = key
-								------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-								if setCoords != undefined then (
-									if container.name != setCoords[1].Name then
-										container.name = setCoords[1].Name + " (" + container.name + ")"
-									print ("Loaded " + key + " " + (setCoords[2] as string))
-									container.rotation = setCoords[2].LocalRotation
-									container.scale = setCoords[2].LocalScale
-									container.pos = setCoords[2].LocalPosition
-									container.transform.controller.value *= (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
-									container.pos.controller.value *= 100
-								)
-								for mesh in meshes do ( -- create MainMesh containers
-									fs = filterstring mesh.name "_"
-									if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
-										mainmesh = Point size:1.0
-										mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
-										mainmesh.parent = container
-										mainmesh.transform = container.transform
-										append mainmeshes mainmesh
-									)
-									if setCoords != undefined then 
-										mesh.transform = container.transform
-									mesh.parent = mainmeshes[mainmeshes.count]
-								)
+							local objSelected = selection as array
+							if setCoords != undefined and not already_imported then
+								names_to_objects.setK key objSelected 
 								
-								for mesh in meshes do (
-									mesh.material = undefined
-									mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
-									if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
-									select mesh
-									max modify mode
+							local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
+							local bones = for obj in objSelected where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj 
+							for bone in bones do hide bone
+							container = Point size:1.0
+							local uniqueNames = #(); local mainmeshes = #()
+							container.name = key
+							------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+							if setCoords != undefined then (
+								if container.name != setCoords[1].Name then
+									container.name = setCoords[1].Name + " (" + container.name + ")"
+								print ("Loaded " + key + " " + (setCoords[2] as string))
+								container.rotation = setCoords[2].LocalRotation
+								container.scale = setCoords[2].LocalScale
+								container.pos = setCoords[2].LocalPosition
+								container.transform.controller.value *= (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
+								container.pos.controller.value *= 100
+							)
+							for mesh in meshes do ( -- create MainMesh containers
+								fs = filterstring mesh.name "_"
+								if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
+									mainmesh = Point size:1.0
+									mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
+									mainmesh.parent = container
+									mainmesh.transform = container.transform
+									append mainmeshes mainmesh
+								)
+								if setCoords != undefined then 
+									mesh.transform = container.transform
+								mesh.parent = mainmeshes[mainmeshes.count]
+							)
+							
+							--skelColor = (random 128 255) (random 128 255) (random 128 255)
+							for mesh in meshes do (
+								mesh.material = undefined
+								mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
+								if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
+								select mesh
+								max modify mode
+								
+								mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".220721329" then 6 else 8 )
+								
+								for b = 1 to bones.count do (
+									if b == 1 and setCoords != undefined then
+										bones[b].transform = container.transform
+									bones[b].showLinks = true
+									bones[b].showLinksOnly = true
+									bones[b].wirecolor = yellow
 									
-									mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".220721329" then 6 else 8 )
-									
-									for b = 1 to bones.count do (
-										if b == 1 and setCoords != undefined then
-											bones[b].transform = container.transform
-										bones[b].showLinks = true
-										bones[b].showLinksOnly = true
-										bones[b].wirecolor = yellow
-										fs = filterstring bones[b].name ":"
-										if fs[2] != undefined then (
-											if (getuserprop bones[b] "Bone_Number") == undefined do setuserprop bones[b] "Bone_Number" fs[1]
-											if (getuserprop bones[b] "Bone_Name") == undefined do setuserprop bones[b] "Bone_Name" fs[2]
-										)
+									fs = filterstring bones[b].name ":"
+									if fs[2] != undefined then (
+										if (getuserprop bones[b] "Bone_Number") == undefined do setuserprop bones[b] "Bone_Number" fs[1]
+										if (getuserprop bones[b] "Bone_Name") == undefined do setuserprop bones[b] "Bone_Name" fs[2]
+									)
+									if chk_populateBones.checked then (
 										bnIdx = findBoneIdx mesh.modifiers[#Skin] bones[b].name
 										if bnIdx == 0 then ( -- add bones to Skin that have numbers but are not currently in
 											if fs.count > 1 then 
@@ -761,6 +789,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					"RE2": ".mesh.1808312334"
 					"DMC5": ".mesh.1808282334"
 					"RE3": ".mesh.1902042334"
+					"RE4": ".mesh.221108797"
 					"RE7": ".mesh.32"
 					"RE7 RT": ".mesh.220128762"
 					"RE8": ".mesh.2101050001"
@@ -846,7 +875,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
@@ -859,6 +888,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						"RE2": getSaveFileName types:"RE2(*.1808312334)|*.1808312334|"
 						"DMC5": getSaveFileName types:"DMC5(*.1808282334)|*.1808282334|"
 						"RE3": getSaveFileName types:"RE3(*.1902042334)|*.1902042334|"
+						"RE4": getSaveFileName types:"RE3(*.221108797)|*.221108797|"
 						"RE7": getSaveFileName types:"RE7(*.32)|*.32|"
 						"RE7 RT": getSaveFileName types:"RE7 RT(*.220128762)|*.220128762|"
 						"RE8": getSaveFileName types:"RE8(*.2101050001)|*.2101050001|"
@@ -872,6 +902,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							DMC5(*.1808282334)|*.1808282334| \
 							RE2(*.1808312334)|*.1808312334| \
 							RE3(*.1902042334)|*.1902042334| \
+							RE4(*.221108797)|*.221108797| \
 							RE7(*.32)|*.32| \
 							RE8(*.2101050001)|*.2101050001| \
 							RE7 RT(*.220128762)|*.220128762| \
@@ -883,7 +914,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							REVerse(*.2102020001)|*.2102020001| "
 					) 
 				) else
-					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.220721329;*.2102020001|All|*.*|"
+					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.220721329;*.2102020001|All|*.*|"
 					
 				if cmd != undefined and cmd != "" then (
 					local fbx_path = (getFilenamePath cmd) + (getFilenameFile (getFilenameFile cmd))
@@ -914,12 +945,31 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					)
 					
 					originalSelection = selection as array
+					selectedBones = for obj in originalSelection where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj
 					copyNodes = #()
 					
+					format "Exporting with % bones selected\n" selectedBones.count
 					
-					for obj in originalSelection where obj.modifiers[#Skin] != undefined do ( 
+					if not chk_manualBoneSelect.checked then ( -- or selectedBones.count == 0 then (
+						for obj in originalSelection where obj.modifiers[#Skin] != undefined do ( 
+							try (
+								selectSkeleton obj
+								if chk_writeBones.checked then ( --Create dummy mesh with all bones in skin modifier so that FBX will save all bones
+									maxOps.cloneNodes obj cloneType:#copy newNodes:&copyNodes #nodialog
+									lastSelection = (selection as array); select copyNodes[1]; copyNodes[1].name = "FBXBoneStorage"
+									for bn in lastSelection do 
+										if superclassof bn == Helper or classof bn == BoneGeometry then 
+											skinops.addBone copyNodes[1].modifiers[#Skin] bn 0
+									selectmore lastSelection
+								)
+								exit
+							) catch ( print "Could not select skeleton! Select bones manually before export" )
+						)
+						
+						/*skinnedNodes = for obj in originalSelection where obj.modifiers[#Skin] != undefined collect obj
 						try (
-							selectSkeleton obj
+							--selectSkeleton obj
+							selectSkinSkeleton skinnedNodes
 							if chk_writeBones.checked then ( --Create dummy mesh with all bones in skin modifier so that FBX will save all bones
 								maxOps.cloneNodes obj cloneType:#copy newNodes:&copyNodes #nodialog
 								lastSelection = (selection as array); select copyNodes[1]; copyNodes[1].name = "FBXBoneStorage"
@@ -929,7 +979,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 								selectmore lastSelection
 							)
 							exit
-						) catch ( print "Could not select skeleton! Select bones manually before export" )
+						) catch ( print "Could not select skeleton! Select bones manually before export" )*/
 					)
 					
 					if chk_showPlugOpt.checked then (--chk_expPrompt
