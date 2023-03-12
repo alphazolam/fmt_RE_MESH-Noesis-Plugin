@@ -1236,7 +1236,7 @@ dialogOptions = DialogOptions()
 
 DoubleClickTimer = namedtuple("DoubleClickTimer", "name idx timer")
 
-gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6" ]
+gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "REVerse", "MHRSunbreak", "DMC5", "SF6" ]
 fullGameNames = [
 	"Resident Evil 7",
 	"Resident Evil 7 RT",
@@ -1245,6 +1245,7 @@ fullGameNames = [
 	"Resident Evil 3",
 	"Resident Evil 4",
 	"Resident Evil 8",
+	"Resident Evil RE:Verse",
 	"MH Rise Sunbreak",
 	"Devil May Cry 5",
 	"Street Fighter 6",
