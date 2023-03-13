@@ -1,7 +1,7 @@
 try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.43
+	--Version: v0.44
 	--Last Release: March 10, 2023
 	--Authors: alphaZomega, mariokart64n
 	
@@ -397,6 +397,26 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		bones
 	)	
 	
+	fn addChildrentToList node nodelist = (
+		for child in node.children do (
+			if finditem nodelist child == 0 then (
+				append nodelist child
+				addChildrentToList child nodelist
+			)
+		)
+	)
+	
+	fn collectAllSkinBones node = (
+		local bones = collectSkinBones node
+		local root = bones[1]
+		while root.parent != undefined do
+			root = root.parent
+		for bone in bones do (
+			addChildrentToList bone bones
+		)
+		bones
+	)
+	
 	fn selectSkinSkeleton nodes = (
 		local originalSelection = selection as array
 		for node in nodes do (
@@ -441,7 +461,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.43" (
+	rollout formNoesisCMD "REEM Noesis 0.44" (
 		
 		group "Import" (
 			button btn_import "Import Mesh" align:#center
@@ -451,7 +471,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 			checkbox chk_fbxOptimize "Optimize FBX" checked:true 
 			--checkbox chk_importMDF "Import Materials" checked:false
 			checkbox chk_folder "Import Folder" checked:false align:#left
-			checkbox chk_populateBones "Populate Bones Lists" checked:false align:#left
+			checkbox chk_populateBones "Populate Bones Lists" checked:true align:#left
 			button btn_import_SCN "Import SCN File" tooltip:"Tries to load positioned mesh files from a SCN file"
 		)
 		group "Export" (
@@ -501,7 +521,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		)
 		
 		fn waitForFileUnlock file file_open_limit:30 = (
-			local i = 0
+			/*local i = 0
 			while i < file_open_limit do (
 				if (try(renameFile file (file + ".tmp"))catch(false)) do (
 					renameFile (file + ".tmp") file
@@ -509,7 +529,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 				)
 				sleep 1
 				i += 1
-			)
+			)*/
 		)
 		
 		fn noesisComponentsFound = (
@@ -1118,37 +1138,38 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 				messageBox "Select one (1) submesh with a Skin modifier"
 				return false
 			)
-			with redraw off (
-				local sourceMesh = $
-				local skinBoneMapS = #()
-				local sourceBones = collectSkinBones sourceMesh
-				local bHasNumbers = false
-				max modify mode
-				theSkinS = sourceMesh.modifiers[#skin]
-				if ( filterString (skinOps.GetBoneName theSkinS 1 0) ":")[2] != undefined then 
-					bHasNumbers = true
-				if bHasNumbers == true then ( --remove numbers
-					for i = 1 to (skinOps.getnumberbones theSkinS) do (
-						local boneName = skinOps.GetBoneName theSkinS i 0
-						local bs = filterString boneName ":"
-						if bs[2] == undefined then (bs[2] = getuserprop sourceBones[i] "Bone_Number")
-						if bs[2] != undefined then (
-							sourceBones[i].name = bs[2]
-							append skinBoneMapS i
-							if (getuserprop sourceBones[i] "Bone_Number") == undefined do setuserprop sourceBones[i] "Bone_Number" bs[1]
-							if (getuserprop sourceBones[i] "Bone_Name") == undefined do setuserprop sourceBones[i] "Bone_Name" bs[2]
-						)
+			local sourceMesh = $
+			local skinBoneMapS = #()
+			local sourceBones = collectAllSkinBones sourceMesh
+			
+			local bHasNumbers = false
+			local theSkinS = sourceMesh.modifiers[#skin]
+			for bone in sourceBones do
+				if ( filterString bone.name ":")[2] != undefined then 
+					( bHasNumbers = true; exit )
+			
+			max modify mode
+			if bHasNumbers then ( --remove numbers
+				for b = 1 to sourceBones.count do (
+					local bs = filterString sourceBones[b].name ":"
+					if bs[2] != undefined then (
+						sourceBones[b].name = bs[2]
+						append skinBoneMapS i
+						if (getuserprop sourceBones[b] "Bone_Number") == undefined do 
+							setuserprop sourceBones[b] "Bone_Number" bs[1]
+						if (getuserprop sourceBones[b] "Bone_Name") == undefined do 
+							setuserprop sourceBones[b] "Bone_Name" bs[2]
 					)
-				) 
-				else ( --restore numbers
-					for b = 1 to (sourceBones.count) do (
-						local BN = getuserprop sourceBones[b] "Bone_Number"
-						local prop = getuserprop sourceBones[b] "Bone_Name"
-						--if prop != undefined then ( sourceBones[b].name = prop )
-						if BN != undefined then ( sourceBones[b].name = BN + ":" + sourceBones[b].name)
-					)
-				)		
-			)
+				)
+			) else ( --restore numbers
+				for b = 1 to (sourceBones.count) do (
+					local BN = getuserprop sourceBones[b] "Bone_Number"
+					local prop = getuserprop sourceBones[b] "Bone_Name"
+					local splitted = filterString sourceBones[b].name ":"
+					if BN != undefined then 
+						sourceBones[b].name = BN + ":" + splitted[splitted.count]
+				)
+			)	
 		)
 		
 		on BtnSkinOnTop pressed do (

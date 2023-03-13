@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.11 (March 10, 2023)"
+Version = "v3.12 (March 13, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -233,7 +233,7 @@ formats = {
 	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
 	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484" },
 	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528" },
-	"REVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
+	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"SF6": 			{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
@@ -738,7 +738,7 @@ def forceFindTexture(FileName, startExtension=""):
 			sGameName = "MHRise"
 			ext = ".28"
 		elif i == 8:
-			sGameName = "REVerse"
+			sGameName = "ReVerse"
 			ext = ".30"
 
 		texFile = LoadExtractedDir() + FileName + ext
@@ -782,7 +782,6 @@ def isImageBlank(imgData, width=None, height=None, threshold=1):
 		imgData = rapi.imageResample(imgData, width, height, 64, 64)
 	for i, b in enumerate(imgData):
 		if (i+1) % 4 != 0 and abs(b - first) > threshold: #skip alpha
-			print("Tex is not blank", i, b, first, abs(b - first))
 			return False
 	return True
 	
@@ -1236,7 +1235,7 @@ dialogOptions = DialogOptions()
 
 DoubleClickTimer = namedtuple("DoubleClickTimer", "name idx timer")
 
-gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6" ]
+gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse" ]
 fullGameNames = [
 	"Resident Evil 7",
 	"Resident Evil 7 RT",
@@ -1248,6 +1247,7 @@ fullGameNames = [
 	"MH Rise Sunbreak",
 	"Devil May Cry 5",
 	"Street Fighter 6",
+	"Resident Evil ReVerse"
 ]
 		
 class openOptionsDialogImportWindow:
@@ -1984,7 +1984,7 @@ def SCNLoadModel(data, mdlList):
 	
 	global sGameName
 	fName = rapi.getInputName().upper()
-	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "DMC5"
+	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName else "SF6" if "SF6" in fName else "MHRSunbreak" if "MHR" in fName else "RE4" if "RE4" in fName else "DMC5"
 	guessedName = guessedName + "RT" if (guessedName + "RT") in fName else guessedName
 	inputName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "SCN Import", "Input the game name", guessedName, None)
 	if not inputName: 
@@ -1998,6 +1998,7 @@ def SCNLoadModel(data, mdlList):
 	sGameName = inputName
 	current_pak_location = LoadExtractedDir(sGameName)
 	sGameName = "RERT" if isRTRemake else sGameName
+	print("Loading mesh/mdf/tex files from," current_pak_location)
 	
 	def getAlignedOffset(tell, alignment):
 		if alignment == 2: return tell + (tell % 2)
@@ -2833,7 +2834,7 @@ class meshFile(object):
 		elif self.path.find(".1902042334") != -1:  #386270720
 			sGameName = "RE3"
 		elif self.path.find(".2102020001") != -1:
-			sGameName = "REVerse"
+			sGameName = "ReVerse"
 		elif meshVersion == 2020091500 or self.path.find(".2101050001") != -1:
 			sGameName = "RE8"
 		elif (meshVersion == 2007158797 or self.path.find(".2008058288") != -1): #Vanilla MHRise
@@ -2884,7 +2885,7 @@ class meshFile(object):
 			pathPrefix = pathPrefix.replace("out.",".")
 		pathPrefix = pathPrefix.replace(".mesh", "").replace(modelExt,"").replace(".NEW", "")
 		
-		if sGameName == "REVerse" and os.path.isdir(os.path.dirname(inputName) + "\\Material"):
+		if sGameName == "ReVerse" and os.path.isdir(os.path.dirname(inputName) + "\\Material"):
 			pathPrefix = (os.path.dirname(inputName) + "\\Material\\" + rapi.getLocalFileName(inputName).replace("SK_", "M_")).replace(".NEW", "")
 			while pathPrefix.find("out.") != -1: 
 				pathPrefix = pathPrefix.replace("out.",".")
@@ -2918,7 +2919,7 @@ class meshFile(object):
 		if not (rapi.checkFileExists(materialFileName)):
 			materialFileName = (pathPrefix + "_00" + mdfExt)
 		if not (rapi.checkFileExists(materialFileName)):
-			if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "REVerse" or sGameName == "RE8" or sGameName == "MHRise":
+			if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "ReVerse" or sGameName == "RE8" or sGameName == "MHRise":
 				pathPrefix = extractedNativesPath + re.sub(r'.*stm\\', '', inputName)
 			else:
 				pathPrefix = extractedNativesPath + re.sub(r'.*x64\\', '', inputName) 
@@ -2997,7 +2998,7 @@ class meshFile(object):
 			
 			if self.mdfVer > 3: #isSF6 or isExoPrimal:
 				bs.seek(0x10 + (i * 100))
-			elif self.mdfVer > 2:#sGameName == "RERT" or sGameName == "REVerse" or sGameName == "RE8" or sGameName == "MHRise":
+			elif self.mdfVer > 2:#sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "RE8" or sGameName == "MHRise":
 				bs.seek(0x10 + (i * 80))
 			else:
 				bs.seek(0x10 + (i * 64))
@@ -3078,7 +3079,7 @@ class meshFile(object):
 				paramType = ReadUnicodeString(bs)
 				
 				colours = []
-				if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "REVerse" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "SF6":
+				if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "ReVerse" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "SF6":
 					bs.seek(floatStartOffs + paramInfo[j][2])
 					if paramInfo[j][3] == 4:
 						colours.append(NoeVec4((bs.readFloat(), bs.readFloat(), bs.readFloat(), bs.readFloat())))
@@ -3136,7 +3137,7 @@ class meshFile(object):
 			
 			for j in range(texCount): # texture headers
 				
-				if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "REVerse" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "SF6":
+				if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "ReVerse" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "SF6":
 					bs.seek(texHdrOffs + (j * 0x20))
 					textureInfo.append([bs.readUInt64(), bs.readUInt64(), bs.readUInt64(), bs.readUInt64()]) #TextureTypeOffset[0], uknBytes[1], TexturePathOffset[2], padding[3]
 					if self.mdfVer >= 4: #isSF6 or isExoPrimal:
@@ -3211,7 +3212,8 @@ class meshFile(object):
 							if rapi.checkFileExists(self.rootDir + testPath) or rapi.checkFileExists(extractedNativesPath + testPath):
 								self.texNames.append(newTexPath.replace('streaming/',''))
 				
-				if ("BaseMetal" in textureType or "BaseDielectric" in textureType or "BaseShift" in textureType) and not bFoundBM: #
+				#if (("BaseMetal" in textureType or "BaseDielectric" in textureType or "BaseAlpha" in textureType or "BaseShift" in textureType)) and not bFoundBM: #
+				if "_alb" in texName.lower() and not bFoundBM: #goddamn RE8
 					bFoundBM = True
 					material.setTexture(texName)
 					material.setDiffuseColor(texBaseColour[i])
@@ -3221,11 +3223,10 @@ class meshFile(object):
 					if "Metal" in textureType:
 						extraParam = "isALBM"
 					if "Dielectric" in textureType:
-						print("found dielectric")
 						extraParam = "isALBD"
 					self.uvBias[material.name] = [0.5, 0.5] if sGameName == "RE7RT" and "atlas" in texName.lower() else 1.0
-				elif ("NormalRoughness" in textureType or "NR" in textureType) and not bFoundNM:
-				#elif textureType == "NormalRoughnessMap" and not bFoundNM:
+				#elif (("Normal" in textureType or "NR" in textureType) or "_nr" in texName.lower()) and not bFoundNM:
+				elif "_nr" in texName.lower() and not bFoundNM:
 					bFoundNM = True
 					material.setNormalTexture(texName)
 					extraParam = "isNRM"
@@ -3240,7 +3241,10 @@ class meshFile(object):
 					material.setOcclTexture(texName.replace(texOutputExt,  "_NoesisAO" + texOutputExt))
 				elif textureType == "AlphaMap":
 					opacityName = texName
-				elif ("_alb" in texName.lower()) and not secondaryDiffuse:
+				#elif "_lymo" in texName.lower():
+				#	extraParam = "isLYMO"
+				elif re.search("^Base.*Map$", textureType) and not secondaryDiffuse:
+				#elif ("_alb" in texName.lower()) and not secondaryDiffuse:
 					secondaryDiffuse = texName
 				elif not dialogOptions.loadAllTextures:
 					isNotMainTexture = True
@@ -3291,6 +3295,24 @@ class meshFile(object):
 									opacityTexData = rapi.imageDecodeRaw(opacityTexData, noetex.width, noetex.height, "r8g8b8")
 									opacityName = texName.replace(texOutputExt,  "_NoesisAlpha" + texOutputExt)
 									self.texList.append(NoeTexture(opacityName, noetex.width, noetex.height, opacityTexData, noesis.NOESISTEX_RGBA32))
+								if "isLYMO" == extraParam:
+									#r=metal? g= b=roughness? a=ao?
+									materialFlags |= noesis.NMATFLAG_PBR_METAL
+									metalTexName = texName.replace(texOutputExt,  "_NoesisMET" + texOutputExt)
+									metalTexData = rapi.imageEncodeRaw(noetex.pixelData, noetex.width, noetex.height, "r8r8r8")
+									metalTexData = rapi.imageDecodeRaw(metalTexData, noetex.width, noetex.height, "r8g8b8")
+									material.setSpecularTexture(metalTexName)
+									self.texList.append(NoeTexture(metalTexName, noetex.width, noetex.height, metalTexData, noesis.NOESISTEX_RGBA32))
+									if dialogOptions.doConvertMatsForBlender:
+										roughnessTexName = texName.replace(texOutputExt,  "_NoesisRGH" + texOutputExt)
+										roughnessTexData = rapi.imageEncodeRaw(noetex.pixelData, noetex.width, noetex.height, "b8b8b8")
+										roughnessTexData = rapi.imageDecodeRaw(roughnessTexData, noetex.width, noetex.height, "r8g8b8")
+										self.texList.append(NoeTexture(roughnessTexName, noetex.width, noetex.height, roughnessTexData, noesis.NOESISTEX_RGBA32))
+										material.setBumpTexture(roughnessTexName)
+									noetex.pixelData = rapi.imageEncodeRaw(noetex.pixelData, noetex.width, noetex.height, "a8a8a8")
+									noetex.pixelData = rapi.imageDecodeRaw(noetex.pixelData, noetex.width, noetex.height, "r8g8b8")
+									material.setOcclTexture(noetex.name)
+									
 								if "isATOS" in extraParam:
 									imgData = copy.copy(noetex.pixelData)
 									aoTexData = rapi.imageEncodeRaw(noetex.pixelData, noetex.width, noetex.height, "b8b8b8")
@@ -3481,7 +3503,7 @@ class meshFile(object):
 			
 			bs.seek(LOD1Offs + 48 + 16) #unknown floats and bounding box
 			
-			if self.ver <= 1:  #sGameName != "RERT" and sGameName != "REVerse" and sGameName != "RE8" and sGameName != "MHRise": 
+			if self.ver <= 1:  #sGameName != "RERT" and sGameName != "ReVerse" and sGameName != "RE8" and sGameName != "MHRise": 
 				bs.seek(bs.readUInt64())
 			
 			offsetInfo = []
@@ -3517,6 +3539,7 @@ class meshFile(object):
 			for i in range(matCount):
 				matIndices.append(bs.readUShort())
 			
+			isSCN = (rapi.getInputName().lower().find(".scn") != -1)
 			fullBonesOffs = len(self.fullBoneList)
 			fullRemapOffs = len(self.fullRemapTable)
 			fullBoneNames = [cleanBoneName(bone.name).lower() for bone in self.fullBoneList]
@@ -3575,7 +3598,7 @@ class meshFile(object):
 									boneName = "b" + "{:03d}".format(j+1) + ":" + boneName
 									break
 						parentIdx = boneParentInfo[i][1]
-						if lowerBoneName in fullBoneNames:
+						if not isSCN and lowerBoneName in fullBoneNames:
 							if i == 0: #relocate this mesh's root bone onto base skeleton version
 							#if lowerBoneName == "cog" or lowerBoneName == "hip" or lowerBoneName == "c_hip":
 								print("Relocating bone", boneName)
@@ -3610,7 +3633,7 @@ class meshFile(object):
 				else:
 					bDoSkin = False
 					
-			isSCN = (rapi.getInputName().lower().find(".scn") != -1)
+			
 			self.fullBoneList.extend(self.boneList)
 			self.fullRemapTable.extend(boneRemapTable)
 			
@@ -3639,7 +3662,7 @@ class meshFile(object):
 					self.groupIDs.append(meshVertexInfo[len(meshVertexInfo)-1][0])
 					submeshData = []
 					for k in range(meshVertexInfo[j][1]):
-						if self.ver >= 2: #sGameName == "RERT" or sGameName == "REVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6":
+						if self.ver >= 2: #sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6":
 							submeshData.append([bs.readUShort(), bs.readUShort(), bs.readUInt(), bs.readUInt(), bs.readUInt(), bs.readUInt64(), self.groupIDs[len(self.groupIDs)-1]]) 
 						else:
 							submeshData.append([bs.readUShort(), bs.readUShort(), bs.readUInt(), bs.readUInt(), bs.readUInt(), self.groupIDs[len(self.groupIDs)-1]]) #0 MaterialID, 1 faceCount, 2 indexBufferStartIndex, 3 vertexStartIndex
@@ -4138,7 +4161,7 @@ def meshWriteModel(mdl, bs):
 	elif ext.find(".1902042334") != -1:
 		sGameName = "RE3"
 	elif ext.find(".2102020001") != -1:
-		sGameName = "REVerse"
+		sGameName = "ReVerse"
 	elif ext.find(".2101050001") != -1:
 		sGameName = "RE8"
 	elif (ext.find(".2109108288") != -1) or (ext.find(".220128762") != -1): #RE2/RE3RT, and RE7RT
@@ -4402,7 +4425,7 @@ def meshWriteModel(mdl, bs):
 		
 		if isSF6:
 			f.seek(232)
-		elif sGameName == "RERT" or sGameName == "REVerse" or sGameName == "MHRise" or sGameName == "RE8":
+		elif sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8":
 			f.seek(192)
 		else:
 			f.seek(200)
@@ -5073,7 +5096,7 @@ def meshWriteModel(mdl, bs):
 				bs.writeUInt(submeshFaceCount[loopSubmeshCount])
 				bs.writeUInt(int(submeshFaceStride[loopSubmeshCount] / 2))
 				bs.writeUInt(submeshVertexStride[loopSubmeshCount])
-				if sGameName == "RERT" or sGameName == "REVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6" or sGameName == "RE4":
+				if sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6" or sGameName == "RE4":
 					bs.seek(8, 1)
 				mainmeshVertexCount += submeshVertexCount[loopSubmeshCount]
 				mainmeshFaceCount += submeshFaceSize[loopSubmeshCount]
@@ -5091,7 +5114,7 @@ def meshWriteModel(mdl, bs):
 		bs.seek(vBuffHdrOffs+skipAmt)
 	
 	if isSF6:
-		facesDiff = 0 if not bReWrite else (80 + 8*vertElemCount)
+		facesDiff = (80 + 8*vertElemCountB if bWriteBones else 0) if not bReWrite else (80 + 8*vertElemCount)
 		bs.writeUInt(faceDataEnd - vertexPosStart) #total buffer size
 		#print("faces offset", bs.tell(), vertexDataEnd, newVertBuffHdrOffs, facesDiff, vertexDataEnd - newVertBuffHdrOffs - facesDiff)
 		bs.writeUInt(vertexDataEnd - newVertBuffHdrOffs - facesDiff) #face buffer offset
