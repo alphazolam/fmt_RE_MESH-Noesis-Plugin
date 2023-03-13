@@ -1998,7 +1998,7 @@ def SCNLoadModel(data, mdlList):
 	sGameName = inputName
 	current_pak_location = LoadExtractedDir(sGameName)
 	sGameName = "RERT" if isRTRemake else sGameName
-	print("Loading mesh/mdf/tex files from," current_pak_location)
+	print("Loading mesh/mdf/tex files from", current_pak_location)
 	
 	def getAlignedOffset(tell, alignment):
 		if alignment == 2: return tell + (tell % 2)
