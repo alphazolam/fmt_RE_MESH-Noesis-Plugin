@@ -1,7 +1,7 @@
 try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.44
+	--Version: v0.45
 	--Last Release: March 10, 2023
 	--Authors: alphaZomega, mariokart64n
 	
@@ -461,10 +461,12 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.44" (
+	rollout formNoesisCMD "REEM Noesis 0.45" (
+		
+		local dist = 1.0
 		
 		group "Import" (
-			button btn_import "Import Mesh" align:#center
+			button btn_import "Import Mesh/Animation" align:#center
 			checkbox chk_resetScene "Reset On Import" checked:false align:#left
 			checkbox chk_legacyFBX "Use Legacy FBX" checked:false align:#left 
 			--checkbox chk_fbxMerge "fbxmeshmerge" checked:true align:#left tooltip:"Merges together meshes that have been split apart and have \"0001_\" before their names"
@@ -473,6 +475,9 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 			checkbox chk_folder "Import Folder" checked:false align:#left
 			checkbox chk_populateBones "Populate Bones Lists" checked:true align:#left
 			button btn_import_SCN "Import SCN File" tooltip:"Tries to load positioned mesh files from a SCN file"
+			button BtnImportSkeleton "Import Bone Positions" tooltip:"Loads bone positions from the chosen MESH file onto the selected bones (by name)"
+			checkbox chk_tPose "T-Pose " offset:[20,0] checked:false tooltip:"Imports the skeleton in a T-pose. Change the threshold number to adjust how close a bone may be to another bone before it is ignored by T-pose rotation"
+			edittext Flddist "" text:(dist as String) offset:[75,-20] fieldWidth:40 labelOnTop:false
 		)
 		group "Export" (
 			button btn_export "Export to Game" align:#center
@@ -764,6 +769,10 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 			) else print("Not found: " + cmd)
 		)
 		
+		on Flddist entered num do (
+			dist = num as float
+		)
+		
 		on formNoesisCMD open do (
 			changeCurrentGame currentItemIdx
 			if doesFileExist noesis_path do (
@@ -896,7 +905,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine MESH/MOTLIST|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001;*.60;*.85;*.99;*.484;*.486;*.524;*.528;*.653;*.663|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
@@ -1063,6 +1072,117 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					select originalSelection
 				)
 			) else (messagebox "Failed to Locate Noesis!")
+		)
+		
+		on BtnImportSkeleton pressed do (
+			if $ == undefined then (
+				messageBox "Need to select one or more Bones"
+				return false
+			)
+			fsource = GetOpenFileName caption:"Import Skeleton: Select *.Mesh File"  types: "MESH files (*.*)|*.*|"
+			if fsource != undefined then (
+				f = fopen fsource "rb+"
+				if f != undefined do (
+					local Type = ReadFixedString f 4
+					if Type != "MESH" do  (
+						messageBox "It is not Mesh file"
+						fclose f
+						return false
+					)
+					
+					local ver = ReadLong f
+					local isSF6 = (ver == 220822879 or ver == 220705151)
+					fseek f (if isSF6 then 32 else 24) #seek_set
+					local DataStartAddress = ReadLong f
+					fseek f (if isSF6 then 104 else 48) #seek_set
+					local BoneHeaderAddress = ReadLong f
+					fseek f (if isSF6 then 144 else 120) #seek_set
+					local NameAddressListAddress = ReadLong f
+					fseek f (DataStartAddress+1) #seek_set
+					local MatCount = ReadByte f
+					fseek f BoneHeaderAddress #seek_set
+					local BoneCount = ReadLong f
+					fseek f (BoneHeaderAddress+24) #seek_set
+					local BoneMatrixAddress0 = ReadLongLong f
+					local BoneMatrixAddress1 = ReadLongLong f			
+						
+					--BoneName	
+					fseek f (NameAddressListAddress + MatCount * 8) #seek_set
+					BoneNameAddressList = #()
+					for i=1 to BoneCount do (
+						append BoneNameAddressList (ReadLong f)	
+						ReadLong f				
+					)
+					
+					local origSelection = for s in (selection as array) collect s
+					local changedBones = selection
+					local TWMat = Matrix3 1; TWMat.row1 = [1,0,0]; TWMat.row2 = [0,0,-1]; TWMat.row3 = [0,1,0]; TWMat.row4 = [0,0,0] 
+					
+					undo on (
+						for i = 1 to changedBones.count do (
+							SubBoneName = changedBones[i].name 
+							cs = filterString SubBoneName ":"
+							if cs[2] != undefined then SubBoneName = cs[2]
+
+							local SubBoneID = -1
+							local ParentBoneID = -1	
+							local newTransform  = Matrix3 1
+							
+							for i=1 to BoneCount do (
+								fseek f (BoneNameAddressList[i]) #seek_set
+								local BoneName = readstring f	
+								if BoneName == SubBoneName then (
+									SubBoneID = i - 1
+									exit
+								)
+							)	
+							
+							if SubBoneID != -1 then (			
+								local newTransform = (Matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
+								if chk_tPose.state == false then (  
+									--BoneMatrix Global
+									fseek f (BoneMatrixAddress1) #seek_set 
+									fseek f (SubBoneID * 64) #seek_cur 
+									newTransform.row1 = [readfloat f, readfloat f, readfloat f]; readfloat f
+									newTransform.row2 = [readfloat f, readfloat f, readfloat f]; readfloat f
+									newTransform.row3 = [readfloat f, readfloat f, readfloat f]; readfloat f
+									newTransform.row4 = [readfloat f, readfloat f, readfloat f] * 100; readfloat f
+									newTransform *= inverse TWMat
+									changedBones[i].transform = newTransform
+								) else (
+									--BoneMatrix Local
+									fseek f (BoneMatrixAddress0) #seek_set 
+									fseek f (SubBoneID * 64) #seek_cur 
+									newTransform.row1 = [readfloat f, readfloat f, readfloat f]; readfloat f
+									newTransform.row2 = [readfloat f, readfloat f, readfloat f]; readfloat f
+									newTransform.row3 = [readfloat f, readfloat f, readfloat f]; readfloat f
+									newTransform.row4 = [readfloat f, readfloat f, readfloat f] * 100; readfloat f
+									changedBones[i].transform = newTransform
+									if changedBones[i].parent != undefined then 
+										changedBones[i].transform *= changedBones[i].parent.transform
+									else -- rotate root bone
+										changedBones[i].transform *= inverse TWMat
+								)
+							)
+						)
+						if chk_tPose.state == true do (
+							for x = 1 to changedBones.count do (
+								if changedBones[x].parent != undefined then (
+									if (findString changedBones[x].name "ffset" != undefined) or (findString changedBones[x].name "clavicle" != undefined) or (findString changedBones[x].name "setProp" != undefined) or (findString changedBones[x].name "_s1" != undefined) or (findString changedBones[x].name "_SR" != undefined) do 
+										continue
+									local tester = distance changedBones[x] changedBones[x].parent
+									if ((dist != 0.0) and ((dist < 0) or not (tester < dist))) do
+										changedBones[x].transform = (matrix3 [1,0,0] [0,0,1] [0,-1,0] changedBones[x].transform.row4) 
+								)
+							)
+						)
+					)
+					fclose f	
+					messageBox "Bone Position(s) Imported"
+					deselect $	
+					select origSelection
+				)
+			)
 		)
 		
 		on btn_reimport pressed do (
