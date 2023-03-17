@@ -106,7 +106,7 @@ def registerNoesisTypes():
 	noesis.setHandlerTypeCheck(handle, SCNCheckType)
 	noesis.setHandlerLoadModel(handle, SCNLoadModel)
 	
-	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.524;.528;.653;.663")
+	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.524;.528;.653;.663;.500")
 	noesis.setHandlerTypeCheck(handle, motlistCheckType)
 	noesis.setHandlerLoadModel(handle, motlistLoadModel)
 
@@ -233,7 +233,7 @@ formats = {
 	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
 	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484" },
 	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528" },
-	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
+	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500" },
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"SF6": 			{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
