@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.13 (April 13, 2023)"
+Version = "v3.14 (April 13, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -88,7 +88,7 @@ def registerNoesisTypes():
 		noesis.addOption(handle, "-vfx", "Export as VFX mesh", 0)
 		return handle
 		
-	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.NewMesh")
+	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.220907984;.NewMesh")
 	noesis.setHandlerTypeCheck(handle, meshCheckType)
 	noesis.setHandlerLoadModel(handle, meshLoadModel)
 	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
@@ -106,7 +106,7 @@ def registerNoesisTypes():
 	noesis.setHandlerTypeCheck(handle, SCNCheckType)
 	noesis.setHandlerLoadModel(handle, SCNLoadModel)
 	
-	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.524;.528;.653;.663;.500")
+	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663")
 	noesis.setHandlerTypeCheck(handle, motlistCheckType)
 	noesis.setHandlerLoadModel(handle, motlistLoadModel)
 
@@ -237,7 +237,7 @@ formats = {
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"SF6": 			{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
-	"ExoPrimal": 	{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
+	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643" },
 	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663" },
 }
 
@@ -1235,7 +1235,7 @@ dialogOptions = DialogOptions()
 
 DoubleClickTimer = namedtuple("DoubleClickTimer", "name idx timer")
 
-gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse" ]
+gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse", "ExoPrimal" ]
 fullGameNames = [
 	"Resident Evil 7",
 	"Resident Evil 7 RT",
@@ -1247,7 +1247,8 @@ fullGameNames = [
 	"MH Rise Sunbreak",
 	"Devil May Cry 5",
 	"Street Fighter 6",
-	"Resident Evil ReVerse"
+	"Resident Evil ReVerse",
+	"ExoPrimal"
 ]
 		
 class openOptionsDialogImportWindow:
@@ -1514,7 +1515,8 @@ class openOptionsDialogImportWindow:
 		self.allFiles = [".."]
 		self.pakFiles = []
 		self.subDirs = []
-		exts = [formatTbl["mlistExt" if self.isMotlist else "modelExt"] for gameName, formatTbl in formats.items()]
+		fmtKey = "mlistExt" if self.isMotlist else "modelExt"
+		exts = [formatTbl[fmtKey] for gameName, formatTbl in formats.items()]
 		for item in os.listdir(dialogOptions.currentDir):
 			if os.path.isdir(os.path.join(dialogOptions.currentDir, item)):
 				self.subDirs.append(item)
@@ -1631,7 +1633,7 @@ class openOptionsDialogImportWindow:
 			
 			self.noeWnd.doModal()
 	
-	def createPakWindow(self, width=dialogOptions.width, height=dialogOptions.height):
+	def createMeshWindow(self, width=dialogOptions.width, height=dialogOptions.height):
 		
 		if self.create(width, height):
 			self.noeWnd.setFont("Futura", 14)
@@ -1669,9 +1671,9 @@ class openOptionsDialogImportWindow:
 				self.reparentCheckbox = self.noeWnd.getControlByIndex(index)
 				self.reparentCheckbox.setChecked(dialogOptions.reparentHelpers)
 				
-				index = self.noeWnd.createCheckBox("Import LODs", 10, 745, 100, 30, self.checkLODsCheckbox)
+				'''index = self.noeWnd.createCheckBox("Import LODs", 10, 745, 100, 30, self.checkLODsCheckbox) #TODO
 				self.LODsCheckbox = self.noeWnd.getControlByIndex(index)
-				self.LODsCheckbox.setChecked(dialogOptions.doLODs)
+				self.LODsCheckbox.setChecked(dialogOptions.doLODs)'''
 				
 				self.noeWnd.createButton("Select Animations", 150, 745, 200, 30, self.openMotlistDialogButton)
 
@@ -2475,11 +2477,14 @@ class motFile:
 			
 		self.bones = []
 		if not dialogOptions.dialog or not dialogOptions.dialog.args.get("mesh"):
+			
+			meshBoneNames = [bone.name.lower() for bone in self.motlist.meshBones]
 			motlistBoneNames = [bone.name.lower() for bone in self.motlist.bones]
+			
 			for i, boneHeader in enumerate(self.boneHeaders):
-				bone = NoeBone(len(self.bones), boneHeader.name, boneHeader.mat, self.boneHeaders[boneHeader.parentIndex].name if boneHeader.parentIndex != -1 else None, boneHeader.parentIndex)
-				self.bones.append(bone)
-				
+				if not meshBoneNames or boneHeader.name.lower() in meshBoneNames: #always use additive animations when loading onto meshes
+					bone = NoeBone(len(self.bones), boneHeader.name, boneHeader.mat, self.boneHeaders[boneHeader.parentIndex].name if boneHeader.parentIndex != -1 else None, boneHeader.parentIndex)
+					self.bones.append(bone)
 			
 			selfBoneNames = [bone.name.lower() for bone in self.bones]
 			addedBones = []
@@ -2542,6 +2547,7 @@ class motFile:
 		self.boneClips = []
 		for i in range(self.boneClipCount):
 			boneClipHdr = self.boneClipHeaders[i]
+			#if self.boneHeaders[boneClipHdr.boneIndex].name in 
 			#if (i == 0 and self.boneHeaders[boneClipHdr.boneIndex].name != self.motlist.bones[0].name):
 			#	print(self.name, "Ignoring all keyframes for ", self.boneHeaders[boneClipHdr.boneIndex].name)
 			#	continue
@@ -2840,12 +2846,13 @@ class meshFile(object):
 		if meshVersion == 220822879:
 			isSF6 = 2
 			sGameName = "RE4"
+		elif meshVersion == 220705151 and self.path.find(".220907984"):
+			isSF6 = 2
+			#isExoPrimal = True
+			sGameName = "ExoPrimal"
 		elif meshVersion == 220705151:
 			isSF6 = True
 			sGameName = "SF6"
-		elif meshVersion == 22011900:
-			isExoPrimal = True
-			sGameName = "ExoPrimal"
 		elif meshVersion == 21041600: # or self.path.find(".2109108288") != -1: #RE2RT + RE3RT, and RE7RT
 			sGameName = "RE7RT" if self.path.find(".220128762") != -1 else "RERT"
 		elif self.path.find(".1808282334") != -1:
@@ -3097,19 +3104,19 @@ class meshFile(object):
 				bs.seek(paramInfo[j][0])
 				paramType = ReadUnicodeString(bs)
 				
-				colours = []
+				colours = None
 				if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "ReVerse" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "SF6":
 					bs.seek(floatStartOffs + paramInfo[j][2])
 					if paramInfo[j][3] == 4:
-						colours.append(NoeVec4((bs.readFloat(), bs.readFloat(), bs.readFloat(), bs.readFloat())))
+						colours = NoeVec4((bs.readFloat(), bs.readFloat(), bs.readFloat(), bs.readFloat()))
 					elif paramInfo[j][3] == 1:
-						colours.append(bs.readFloat())
+						colours = bs.readFloat()
 				else:
 					bs.seek(floatStartOffs + paramInfo[j][3])
 					if paramInfo[j][2] == 4:
-						colours.append(NoeVec4((bs.readFloat(), bs.readFloat(), bs.readFloat(), bs.readFloat())))
+						colours = NoeVec4((bs.readFloat(), bs.readFloat(), bs.readFloat(), bs.readFloat()))
 					elif paramInfo[j][2] == 1:
-						colours.append(bs.readFloat())
+						colours = bs.readFloat()
 					
 				if doPrintMDF:
 					print(paramType + ":", colours)
@@ -3132,6 +3139,8 @@ class meshFile(object):
 				if paramType == "Fresnel_DiffuseIntensity" and not bFoundFresnelColour:
 					bFoundFresnelColour = True
 					texFresnelColour.append(colours)
+				if paramType == "Occlusion_UseSecondaryUV" and colours != 0:
+					materialFlags2 |= noesis.NMATFLAG2_OCCL_UV1
 			
 			#Append defaults
 			if not bFoundBaseColour:
@@ -3175,7 +3184,8 @@ class meshFile(object):
 				opacityName = ""
 				extraParam = ""
 				
-				
+				if bFoundBaseColour:
+					material.setDiffuseColor(texBaseColour[i])
 				if bFoundSpecColour:
 					material.setSpecularColor(texSpecColour[i])
 				if bFoundAmbiColour:
@@ -3235,7 +3245,7 @@ class meshFile(object):
 				if "_alb" in texName.lower() and not bFoundBM: #goddamn RE8
 					bFoundBM = True
 					material.setTexture(texName)
-					material.setDiffuseColor(texBaseColour[i])
+					print("set diffuse", texBaseColour[i])
 					material.setSpecularColor([.25, .25, .25, 1])
 					if "AlphaMap" in textureType:
 						extraParam = "isALBA"
@@ -3904,14 +3914,14 @@ def meshLoadModel(data, mdlList):
 	dialogOptions.currentDir = ""
 	dialog = openOptionsDialogImportWindow(None, None, {"mesh":mesh})
 	dialog.path = rapi.getInputName()
-	dialog.createPakWindow()
+	dialog.createMeshWindow()
 	
 	while dialogOptions.motDialog and dialogOptions.motDialog.isOpen:
 		dialogOptions.motDialog.createMotlistWindow()
 		dialogOptions.motDialog.isOpen = False
 		if dialog.isOpen:
 			dialogOptions.currentDir = dialog.currentDir
-			dialog.createPakWindow()
+			dialog.createMeshWindow()
 	
 	if not dialog.isCancelled:
 		for fullMeshPath in dialog.fullLoadItems:
@@ -4195,6 +4205,9 @@ def meshWriteModel(mdl, bs):
 	elif ext.find(".220721329") != -1:
 		sGameName = "SF6"
 		isSF6 = True
+	elif ext.find(".220907984") != -1:
+		sGameName = "ExoPrimal"
+		isSF6 = 2
 	elif ext.find(".221108797") != -1:
 		sGameName = "RE4"
 		isSF6 = 2
