@@ -2001,43 +2001,30 @@ def SCNLoadModel(data, mdlList):
 	print("Loading mesh/mdf/tex files from", current_pak_location)
 	
 	def getAlignedOffset(tell, alignment):
-		if alignment == 2: return tell + (tell % 2)
-		elif alignment == 4: return (tell+3) & 0xFFFFFFFFFFFFFFFC
-		elif alignment == 8: return (tell+7) & 0xFFFFFFFFFFFFFFF8
-		elif alignment == 16: return (tell+15) & 0xFFFFFFFFFFFFFFF0
-		else: return tell
-	
+		mask = alignment - 1
+		return (tell + mask) & ~mask
+
 	def readByteAndReturn(bs):
-		output = bs.readByte()
-		bs.seek(-1,1)
-		return output
-	
+		return bs.readByte()
+
 	def detectedFloat(bs):
 		if bs.tell() + 4 > bs.getSize():
 			return False
 		flt = abs(bs.readFloat())
-		return (flt == 0 or (flt >= 0.000000001 and flt <= 100000000.0))
-	
+		return flt == 0 or 0.000000001 <= flt <= 100000000.0
+
 	def detectedBools(bs, atAddress):
 		returnPos = bs.tell()
-		nonBoolTotal = 0
-		bs.seek(atAddress) #seek_set
-		for i in range(4):
-			if abs(bs.readByte()) > 1:
-				nonBoolTotal += 1
+		nonBoolTotal = sum(abs(bs.readByte()) > 1 for i in range(4))
 		bs.seek(returnPos)
-		return (nonBoolTotal == 0)
-	
+		return nonBoolTotal == 0
+
 	def detectedXform(bs):
 		if bs.tell() + 32 >= bs.getSize():
 			return False
 		returnPos = bs.tell()
-		detected = True
 		bs.seek(getAlignedOffset(returnPos, 16))
-		for i in range(12):
-			if not detectedFloat(bs) and (i < 4 or i > 7): #Skip rotation, as valid quaternions can have values like 1.02e^-40
-				detected = False
-				break
+		detected = all(detectedFloat(bs) for i in range(12) if i < 4 or i > 7)
 		bs.seek(returnPos)
 		return detected
  
