@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.12 (March 13, 2023)"
+Version = "v3.13 (April 13, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -106,7 +106,7 @@ def registerNoesisTypes():
 	noesis.setHandlerTypeCheck(handle, SCNCheckType)
 	noesis.setHandlerLoadModel(handle, SCNLoadModel)
 	
-	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.524;.528;.653;.663")
+	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.524;.528;.653;.663;.500")
 	noesis.setHandlerTypeCheck(handle, motlistCheckType)
 	noesis.setHandlerLoadModel(handle, motlistLoadModel)
 
@@ -233,7 +233,7 @@ formats = {
 	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
 	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484" },
 	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528" },
-	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
+	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500" },
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"SF6": 			{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
@@ -1984,7 +1984,7 @@ def SCNLoadModel(data, mdlList):
 	
 	global sGameName
 	fName = rapi.getInputName().upper()
-	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName else "SF6" if "SF6" in fName else "MHRSunbreak" if "MHR" in fName else "RE4" if "RE4" in fName else "DMC5"
+	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "DMC5"
 	guessedName = guessedName + "RT" if (guessedName + "RT") in fName else guessedName
 	inputName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "SCN Import", "Input the game name", guessedName, None)
 	if not inputName: 
@@ -1998,54 +1998,48 @@ def SCNLoadModel(data, mdlList):
 	sGameName = inputName
 	current_pak_location = LoadExtractedDir(sGameName)
 	sGameName = "RERT" if isRTRemake else sGameName
-	print("Loading mesh/mdf/tex files from", current_pak_location)
 	
 	def getAlignedOffset(tell, alignment):
-		if alignment == 2: return tell + (tell % 2)
-		elif alignment == 4: return (tell+3) & 0xFFFFFFFFFFFFFFFC
-		elif alignment == 8: return (tell+7) & 0xFFFFFFFFFFFFFFF8
-		elif alignment == 16: return (tell+15) & 0xFFFFFFFFFFFFFFF0
-		else: return tell
-	
+		mask = alignment - 1
+		return (tell + mask) & ~mask
+
 	def readByteAndReturn(bs):
-		output = bs.readByte()
-		bs.seek(-1,1)
-		return output
-	
+		out = bs.readByte()
+		bs.seek(-1, 1)
+		return out
+
 	def detectedFloat(bs):
 		if bs.tell() + 4 > bs.getSize():
 			return False
 		flt = abs(bs.readFloat())
-		return (flt == 0 or (flt >= 0.000000001 and flt <= 100000000.0))
-	
+		return flt == 0 or 0.000000001 <= flt <= 100000000.0
+
 	def detectedBools(bs, atAddress):
 		returnPos = bs.tell()
-		nonBoolTotal = 0
-		bs.seek(atAddress) #seek_set
-		for i in range(4):
-			if abs(bs.readByte()) > 1:
-				nonBoolTotal += 1
+		bs.seek(atAddress)
+		nonBoolTotal = sum(abs(bs.readByte()) > 1 for i in range(4))
 		bs.seek(returnPos)
-		return (nonBoolTotal == 0)
-	
+		#print(returnPos, nonBoolTotal)
+		return nonBoolTotal == 0
+
 	def detectedXform(bs):
 		if bs.tell() + 32 >= bs.getSize():
 			return False
 		returnPos = bs.tell()
-		detected = True
 		bs.seek(getAlignedOffset(returnPos, 16))
-		for i in range(12):
-			if not detectedFloat(bs) and (i < 4 or i > 7): #Skip rotation, as valid quaternions can have values like 1.02e^-40
-				detected = False
-				break
+		detected = all(detectedFloat(bs) for i in range(12) if i < 3 or i > 7)
 		bs.seek(returnPos)
 		return detected
- 
+	
+	def checkByteIsUnicodeAlt(bs):
+		altByte = bs.readUByte()
+		return altByte == 0 or 30 <= altByte <= 150 #try to detect Japanese
+	
 	def detectedString(bs, offset):
 		returnPos = bs.tell()
 		result = False
 		bs.seek(offset)
-		if bs.readByte() != 0 and bs.readByte() == 0 and bs.readByte() != 0 and bs.readByte() == 0  and bs.readByte() != 0 and bs.readByte() == 0:
+		if bs.readByte() != 0 and checkByteIsUnicodeAlt(bs) and bs.readByte() != 0 and checkByteIsUnicodeAlt(bs) and bs.readByte() != 0 and checkByteIsUnicodeAlt(bs):
 			result = True
 		bs.seek(returnPos)
 		return result
@@ -2058,7 +2052,7 @@ def SCNLoadModel(data, mdlList):
 				bs.seek(-2, 1)
 				slash_detected = slash_detected or ((readByteAndReturn(bs)) == 47)
 			bs.seek(-2, 1)
-		if not is_second_time and detectedString(bs, bs.tell()):
+		if not is_second_time and (detectedString(bs, bs.tell())):
 			bs.seek(-10, 1)
 			redetectStringBehind(bs, True)
 			if not detectedString(bs, bs.tell()+4):
@@ -2076,6 +2070,7 @@ def SCNLoadModel(data, mdlList):
 		DrawSelf = bs.readByte()
 		UpdateSelf = bs.readByte()
 		bs.seek(timescale_offset)
+		#bs.seek(getAlignedOffset(bs.tell(), 4))
 		TimeScale = bs.readFloat()
 		return viaGameObject(Name, Tag, DrawSelf, UpdateSelf, TimeScale)
 	
@@ -2104,6 +2099,8 @@ def SCNLoadModel(data, mdlList):
 			if bs.tell() >= limitPoint: break
 			while not detectedString(bs, bs.tell()):
 				if bs.tell() >= limitPoint: break
+				if bs.tell() + 4 > bs.getSize():
+					return output
 				bs.seek(4,1)
 			bs.seek(getAlignedOffset(bs.tell()-2, 4))
 			meshPath = ReadUnicodeString(bs)
@@ -2135,17 +2132,22 @@ def SCNLoadModel(data, mdlList):
 			while bs.tell() + 4 < fileSize:
 				while tester != 3212836864 and bs.tell() + 4 < fileSize: # 00 00 80 BF , timescale -1.0
 					tester = bs.readUInt()
-				if pos < fileSize - 16 and detectedBools(bs, bs.tell()-8) and detectedXform(bs):
-					#print ("\nFound possible GameObject at ", bs.tell())
+				boolSearchPos = bs.tell()-8
+				foundBools = detectedBools(bs, bs.tell()-8)
+				foundXform = detectedXform(bs)
+				if pos < fileSize - 16 and foundBools and foundXform:
+					print ("\nFound possible GameObject at ", bs.tell())
 					GameObjectAddresses.append(bs.tell())
+				else:
+					print ("\nFound possible GameObject at ", bs.tell(), "but xform:", foundXform, "and bools:", foundBools, boolSearchPos)
 				tester = bs.readUInt()
 			
 			if len(GameObjectAddresses) > 0:
 				GameObjectAddresses.append(fileSize)
-				for i in range(len(GameObjectAddresses)-2):
+				for i in range(len(GameObjectAddresses)-1):
 					bs.seek(GameObjectAddresses[i])
 					transform = readViaTransform(bs)
-					bs.seek(GameObjectAddresses[i]-36)
+					bs.seek(GameObjectAddresses[i]-28)
 					pos2 = bs.tell()
 					while not detectedString(bs, bs.tell()) and pos2 - bs.tell() < 12:
 						bs.seek(-2,1)
@@ -2154,10 +2156,25 @@ def SCNLoadModel(data, mdlList):
 					if detectedString(bs, bs.tell()):
 						redetectStringBehind(bs, False)
 					gameobject = readViaGameObject(bs, GameObjectAddresses[i]-4)
-					if abs(gameobject.DrawSelf) <= 1 and abs(gameobject.UpdateSelf) <= 1 and gameobject.TimeScale == -1:
+					if gameobject.Name and abs(gameobject.DrawSelf) <= 1 and abs(gameobject.UpdateSelf) <= 1 and gameobject.TimeScale == -1:
 						meshMDF = findMesh(bs, GameObjectAddresses[i+1])
 						GameObjects.append([gameobject, transform, meshMDF[0], meshMDF[1]])
-						#print(bs.tell(), GameObjects[len(GameObjects)-1])
+					elif not (abs(gameobject.DrawSelf) <= 1 and abs(gameobject.UpdateSelf) <= 1):
+						bs.seek(GameObjectAddresses[i]-40)
+						pos2 = bs.tell()
+						while not detectedString(bs, bs.tell()) and pos2 - bs.tell() < 12:
+							bs.seek(-2,1)
+						if pos2 - bs.tell() == 12:
+							bs.seek(pos2)
+						if detectedString(bs, bs.tell()):
+							redetectStringBehind(bs, False)
+						gameobject = readViaGameObject(bs, GameObjectAddresses[i]-4)
+						if gameobject.Name and abs(gameobject.DrawSelf) <= 1 and abs(gameobject.UpdateSelf) <= 1 and gameobject.TimeScale == -1:
+							meshMDF = findMesh(bs, GameObjectAddresses[i+1])
+							GameObjects.append([gameobject, transform, meshMDF[0], meshMDF[1]])
+						else:
+							print("Failed to add GameObject at", GameObjectAddresses[i]-4, abs(gameobject.DrawSelf),  abs(gameobject.UpdateSelf), gameobject.TimeScale, gameobject.Name)
+						
 						
 		return GameObjects
 	
@@ -2178,15 +2195,20 @@ def SCNLoadModel(data, mdlList):
 		ids.append(ss.readUInt())
 		parentIds.append(ss.readUInt())
 		ss.seek(24,1)
-	#st4_708_0 garage
+		
 	counter = 0
 	usedNames = {}
-	print(gameObjs)
+	print("Expected GameObject count:", len(parentIds), ", Num found GameObjects:", len(gameObjs))
+	for i, gameObj in enumerate(gameObjs):
+		print(i, gameObj)
+	#return 1
+	
 	for i, tup in enumerate(gameObjs):
 		try:
 			gameObjsDict[ids[i]] = tup
 		except: 
 			pass
+		print(tup)
 		if tup[2] != None and rapi.checkFileExists(tup[2]) and tup[0].Name.find("AIMap") == -1:
 			mesh = meshFile(rapi.loadIntoByteArray(tup[2]), tup[2])
 			mesh.meshFile = tup[2]
@@ -2225,9 +2247,6 @@ def SCNLoadModel(data, mdlList):
 	print("\nLoaded", counter, "MESH files comprised of", len(mdl.meshes), "submeshes")
 	
 	return 1
-	
-	
-	
 	
 BoneHeader = namedtuple("BoneHeader", "name pos rot index parentIndex hash mat")
 
@@ -4988,7 +5007,7 @@ def meshWriteModel(mdl, bs):
 		else:
 			bs.writeUByte(bID)
 	
-	boneIdMax = 8 if not isSF6 else 6
+	boneIdMax = 6 if isSF6 == True else 8
 	bnWeightStart = bs.tell()
 	
 	if bDoSkin:
