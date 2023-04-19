@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.14 (April 13, 2023)"
+Version = "v3.15 (April 19, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -2104,9 +2104,12 @@ def SCNLoadModel(data, mdlList):
 				if bs.tell() + 4 > bs.getSize():
 					return output
 				bs.seek(4,1)
-			bs.seek(getAlignedOffset(bs.tell()-2, 4))
-			meshPath = ReadUnicodeString(bs)
-			bs.seek(getAlignedOffset(bs.tell()+1, 4))
+			try:
+				bs.seek(getAlignedOffset(bs.tell()-2, 4))
+				meshPath = ReadUnicodeString(bs)
+				bs.seek(getAlignedOffset(bs.tell()+1, 4))
+			except:
+				break
 		if meshPath.find(".mesh") != -1 and meshPath.lower().find("occ") == -1:
 			meshPath = meshPath.replace("/", "\\")
 			meshPath = current_pak_location + meshPath + formats[sGameName]["modelExt"]
@@ -2157,12 +2160,14 @@ def SCNLoadModel(data, mdlList):
 						bs.seek(pos2)
 					if detectedString(bs, bs.tell()):
 						redetectStringBehind(bs, False)
+					st = bs.tell()
 					gameobject = readViaGameObject(bs, GameObjectAddresses[i]-4)
 					if gameobject.Name and abs(gameobject.DrawSelf) <= 1 and abs(gameobject.UpdateSelf) <= 1 and gameobject.TimeScale == -1:
 						meshMDF = findMesh(bs, GameObjectAddresses[i+1])
 						GameObjects.append([gameobject, transform, meshMDF[0], meshMDF[1]])
 					elif not (abs(gameobject.DrawSelf) <= 1 and abs(gameobject.UpdateSelf) <= 1):
-						bs.seek(GameObjectAddresses[i]-40)
+						#print("1. Failed to add GameObject at", st, pos2, abs(gameobject.DrawSelf),  abs(gameobject.UpdateSelf), gameobject.TimeScale, gameobject.Name)
+						bs.seek(st - 8)
 						pos2 = bs.tell()
 						while not detectedString(bs, bs.tell()) and pos2 - bs.tell() < 12:
 							bs.seek(-2,1)
@@ -2170,14 +2175,15 @@ def SCNLoadModel(data, mdlList):
 							bs.seek(pos2)
 						if detectedString(bs, bs.tell()):
 							redetectStringBehind(bs, False)
+						st = bs.tell()
 						gameobject = readViaGameObject(bs, GameObjectAddresses[i]-4)
 						if gameobject.Name and abs(gameobject.DrawSelf) <= 1 and abs(gameobject.UpdateSelf) <= 1 and gameobject.TimeScale == -1:
 							meshMDF = findMesh(bs, GameObjectAddresses[i+1])
 							GameObjects.append([gameobject, transform, meshMDF[0], meshMDF[1]])
 						else:
-							print("Failed to add GameObject at", GameObjectAddresses[i]-4, abs(gameobject.DrawSelf),  abs(gameobject.UpdateSelf), gameobject.TimeScale, gameobject.Name)
+							print("2. Failed to add GameObject at", st, pos2, abs(gameobject.DrawSelf),  abs(gameobject.UpdateSelf), gameobject.TimeScale, gameobject.Name)
 						
-						
+		print("Num detected:", len(GameObjectAddresses), len(GameObjects))
 		return GameObjects
 	
 	ss = NoeBitStream(data)
@@ -2201,8 +2207,8 @@ def SCNLoadModel(data, mdlList):
 	counter = 0
 	usedNames = {}
 	print("Expected GameObject count:", len(parentIds), ", Num found GameObjects:", len(gameObjs))
-	for i, gameObj in enumerate(gameObjs):
-		print(i, gameObj)
+	#for i, gameObj in enumerate(gameObjs):
+	#	print(i, gameObj)
 	#return 1
 	
 	for i, tup in enumerate(gameObjs):
@@ -2224,6 +2230,7 @@ def SCNLoadModel(data, mdlList):
 				mesh.pos *= parentRotation.transpose()
 				mesh.pos += parentPosition
 				mesh.rot = parentRotation * mesh.rot
+			print(mesh.pos, mesh.rot)
 			mesh.fullTexList = totalTexList
 			mesh.fullMatList = totalMatList
 			mesh.fullBoneList = totalBoneList
@@ -2236,6 +2243,7 @@ def SCNLoadModel(data, mdlList):
 			usedNames[mesh.name] = True
 			mesh.loadMeshFile()
 			counter += 1
+	#return 1
 	try:
 		mdl = rapi.rpgConstructModelAndSort()
 		mdl.setModelMaterials(NoeModelMaterials(totalTexList, totalMatList))
@@ -3063,6 +3071,7 @@ class meshFile(object):
 			bs.seek(mmtr_PathOffs)
 			mmtrName = ReadUnicodeString(bs)
 			hasTransparency = not not (((alphaFlag & ( 1 << 1 )) >> 1) or ((alphaFlag & ( 1 << 4 )) >> 4))
+			hasTransparency = hasTransparency or mmtrName.lower().find("_dirt") != -1 or mmtrName.lower().find("_decal") != -1 
 			
 			if bPrintFileList:
 				self.texNames.append(("natives/" + nDir + "/" + mmtrName + mmtrExt).lower())
@@ -3573,6 +3582,8 @@ class meshFile(object):
 			fullRemapOffs = len(self.fullRemapTable)
 			fullBoneNames = [cleanBoneName(bone.name).lower() for bone in self.fullBoneList]
 			boneRemapTable = []
+			
+			#bSkinningEnabled = bDoSkin = bonesOffs = 0
 			
 			#Skeleton
 			if bonesOffs:
