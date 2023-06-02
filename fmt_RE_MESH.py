@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.16 (April 27, 2023)"
+Version = "v3.16 (June 2, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -16,8 +16,7 @@ bREVExport 					= True					#Enable or disable export of mesh.2102020001 from the
 bRE8Export 					= True					#Enable or disable export of mesh.2101050001 from the export list (and tex.30)
 bMHRiseExport 				= False					#Enable or disable export of mesh.2008058288 from the export list (and tex.28) 
 bMHRiseSunbreakExport 		= True					#Enable or disable export of mesh.2109148288 from the export list (and tex.28)
-bSF6BetaExport				= True					#Enable or disable export of mesh.220721329 from the export list (and tex.36)
-bSF6Export 					= True					#Enable or disable export of mesh.230110883 from the export list (and tex.143230113)
+bSF6Export					= True					#Enable or disable export of mesh.230110883 from the export list (and tex.143230113)
 bRE4Export					= True					#Enable or disable export of mesh.221108797 from the export list (and tex.143221013)
 
 
@@ -195,17 +194,8 @@ def registerNoesisTypes():
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
 	
-	if bSF6BetaExport:
-		handle = noesis.register("Street Fighter 6 Beta Texture [PC]", ".36")
-		noesis.setHandlerTypeCheck(handle, texCheckType)
-		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		handle = noesis.register("Street Fighter 6 Beta Mesh", (".220721329"))
-		noesis.setHandlerTypeCheck(handle, meshCheckType)
-		noesis.setHandlerWriteModel(handle, meshWriteModel)
-		addOptions(handle)
-
 	if bSF6Export:
-		handle = noesis.register("Street Fighter 6 Texture [PC]", ".143230113")
+		handle = noesis.register("Street Fighter 6 Texture [PC]", ".143230113;")
 		noesis.setHandlerTypeCheck(handle, texCheckType)
 		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
 		handle = noesis.register("Street Fighter 6 Mesh", (".230110883"))
@@ -246,8 +236,7 @@ formats = {
 	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500" },
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
-	"SF6Beta":		{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
-	"SF6":			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
+	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
 	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643" },
 	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663" },
 }
@@ -283,7 +272,6 @@ extToFormat["30"] = extToFormat["34"]
 extToFormat["35"] = extToFormat["34"]
 extToFormat["28"] = extToFormat["34"]
 extToFormat["143221013"] = extToFormat["34"]
-extToFormat["143230113"] = extToFormat["34"] #New SF6 Demo format
 extToFormat["28.stm"] = extToFormat["28"]
 
 
@@ -1247,7 +1235,7 @@ dialogOptions = DialogOptions()
 
 DoubleClickTimer = namedtuple("DoubleClickTimer", "name idx timer")
 
-gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6Beta", "SF6", "ReVerse", "ExoPrimal" ]
+gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse", "ExoPrimal" ]
 fullGameNames = [
 	"Resident Evil 7",
 	"Resident Evil 7 RT",
@@ -1258,7 +1246,6 @@ fullGameNames = [
 	"Resident Evil 8",
 	"MH Rise Sunbreak",
 	"Devil May Cry 5",
-	"Street Fighter 6 Beta",
 	"Street Fighter 6",
 	"Resident Evil ReVerse",
 	"ExoPrimal"
@@ -1999,7 +1986,7 @@ def SCNLoadModel(data, mdlList):
 	
 	global sGameName
 	fName = rapi.getInputName().upper()
-	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName else "SF6Beta" if "SF6Beta" in fName else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "DMC5"
+	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "DMC5"
 	guessedName = guessedName + "RT" if (guessedName + "RT") in fName else guessedName
 	inputName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "SCN Import", "Input the game name", guessedName, None)
 	if not inputName: 
@@ -2867,14 +2854,11 @@ class meshFile(object):
 		if meshVersion == 220822879:
 			isSF6 = 2
 			sGameName = "RE4"
-		elif meshVersion == 220705151 and self.path.find(".220907984"):
+		elif (meshVersion == 220705151 and self.path.find(".220907984") != -1):
 			isSF6 = 2
 			#isExoPrimal = True
 			sGameName = "ExoPrimal"
-		elif meshVersion == 220705151:
-			isSF6 = True
-			sGameName = "SF6Beta"
-		elif meshVersion == 220705151 and self.path.find(".230110883"):
+		elif (meshVersion == 220705151 and self.path.find(".230110883") != -1):
 			isSF6 = True
 			sGameName = "SF6"
 		elif meshVersion == 21041600: # or self.path.find(".2109108288") != -1: #RE2RT + RE3RT, and RE7RT
@@ -4229,9 +4213,6 @@ def meshWriteModel(mdl, bs):
 		RERTBytes = 8
 	elif ext.find(".2008058288") != -1: #Vanilla MHRise
 		sGameName = "MHRise"
-	elif ext.find(".220721329") != -1:
-		sGameName = "SF6Beta"
-		isSF6 = True
 	elif ext.find(".230110883") != -1:
 		sGameName = "SF6"
 		isSF6 = True
@@ -5158,7 +5139,7 @@ def meshWriteModel(mdl, bs):
 				bs.writeUInt(submeshFaceCount[loopSubmeshCount])
 				bs.writeUInt(int(submeshFaceStride[loopSubmeshCount] / 2))
 				bs.writeUInt(submeshVertexStride[loopSubmeshCount])
-				if sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6Beta" or sGameName == "SF6" or sGameName == "RE4":
+				if sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6" or sGameName == "RE4":
 					bs.seek(8, 1)
 				mainmeshVertexCount += submeshVertexCount[loopSubmeshCount]
 				mainmeshFaceCount += submeshFaceSize[loopSubmeshCount]
