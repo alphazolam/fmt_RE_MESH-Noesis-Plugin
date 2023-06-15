@@ -1,11 +1,11 @@
 try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.45
-	--Last Release: March 10, 2023
+	--Version: v0.46
+	--Last Release: June 2, 2023
 	--Authors: alphaZomega, mariokart64n
 	
-	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
+	local noesis_path = 		"C:\\Program Files\\_Noesis\\Noesis.exe"
 	
 	local re2_pak_location = 	"F:\\modmanager\\REtool\\RE2_chunk_000\\natives\\x64\\"
 	local re3_pak_location = 	"F:\\modmanager\\REtool\\RE3_chunk_000\\natives\\stm\\"
@@ -461,7 +461,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.45" (
+	rollout formNoesisCMD "REEM Noesis 0.46" (
 		
 		local dist = 1.0
 		
@@ -561,7 +561,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					"RE8": ".mesh.2101050001"
 					"MHRise": ".mesh.2008058288"
 					"MHRSunbreak": ".mesh.2109148288"
-					"SF6": ".mesh.220721329"
+					"SF6": ".mesh.230110883"
 					"REVerse": ".mesh.2102020001"
 					default: ""
 				)
@@ -688,7 +688,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						if thisExt != lastExt then (
 							lastExt = thisExt
 							--This list must have the same order as gamesList:
-							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".220721329") lastExt) 
+							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".230110883") lastExt) 
 						)
 						
 						if chk_bnNumbers.checked then (				
@@ -736,7 +736,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 								select mesh
 								max modify mode
 								
-								mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".220721329" then 6 else 8 )
+								mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".230110883" then 6 else 8 )
 								
 								for b = 1 to bones.count do (
 									if b == 1 and setCoords != undefined then
@@ -905,7 +905,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine MESH/MOTLIST|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001;*.60;*.85;*.99;*.484;*.486;*.524;*.528;*.653;*.663|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine MESH/MOTLIST|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001;*.230110883;*.60;*.85;*.99;*.484;*.486;*.524;*.528;*.653;*.663|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
@@ -926,7 +926,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						"MHRSunbreak": getSaveFileName types:"MHRSunbreak(*.2109148288)|*.2109148288|"
 						"RE2 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
 						"RE3 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
-						"SF6" : getSaveFileName types:"RT(*.220721329)|*.220721329|"
+						"SF6" : getSaveFileName types:"RT(*.230110883)|*.230110883|"
 						"REVerse" : getSaveFileName types:"REVerse(*.2102020001)|*.2102020001"
 						default: getSaveFileName types:" \
 							DMC5(*.1808282334)|*.1808282334| \
@@ -940,11 +940,11 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							RE3 RT(*.2109108288)|*.2109108288| \
 							MHRise(*.2008058288)|*.2008058288| \
 							MHRSunbreak(*.2109148288)|*.2109148288| \
-							SF6(*.220721329)|*.220721329| \
+							SF6(*.230110883)|*.230110883| \
 							REVerse(*.2102020001)|*.2102020001| "
 					) 
 				) else
-					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.220721329;*.2102020001|All|*.*|"
+					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.220721329;*.2102020001;*.230110883|All|*.*|"
 					
 				if cmd != undefined and cmd != "" then (
 					local fbx_path = (getFilenamePath cmd) + (getFilenameFile (getFilenameFile cmd))
@@ -1396,5 +1396,5 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		
 	)
 	createdialog formNoesisCMD
-	--cui.RegisterDialogBar formNoesisCMD style:#(#cui_dock_all, #cui_floatable, #cui_handles)
+	cui.RegisterDialogBar formNoesisCMD style:#(#cui_dock_all, #cui_floatable, #cui_handles)
 )
