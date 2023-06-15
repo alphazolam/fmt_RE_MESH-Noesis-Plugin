@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.16 (June 15, 2023)"
+Version = "v3.15 (April 19, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -16,7 +16,7 @@ bREVExport 					= True					#Enable or disable export of mesh.2102020001 from the
 bRE8Export 					= True					#Enable or disable export of mesh.2101050001 from the export list (and tex.30)
 bMHRiseExport 				= False					#Enable or disable export of mesh.2008058288 from the export list (and tex.28) 
 bMHRiseSunbreakExport 		= True					#Enable or disable export of mesh.2109148288 from the export list (and tex.28)
-bSF6Export					= True					#Enable or disable export of mesh.230110883 from the export list (and tex.143230113)
+bSF6Export					= True					#Enable or disable export of mesh.220721329 from the export list (and tex.36)
 bRE4Export					= True					#Enable or disable export of mesh.221108797 from the export list (and tex.143221013)
 
 
@@ -88,13 +88,13 @@ def registerNoesisTypes():
 		noesis.addOption(handle, "-vfx", "Export as VFX mesh", 0)
 		return handle
 		
-	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.220907984;.230110883;.NewMesh")
+	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.220907984;.NewMesh")
 	noesis.setHandlerTypeCheck(handle, meshCheckType)
 	noesis.setHandlerLoadModel(handle, meshLoadModel)
 	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
 	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
 	
-	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.143221013;.143230113")
+	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.143221013")
 	noesis.setHandlerTypeCheck(handle, texCheckType)
 	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
 
@@ -195,10 +195,10 @@ def registerNoesisTypes():
 		addOptions(handle)
 	
 	if bSF6Export:
-		handle = noesis.register("Street Fighter 6 Texture [PC]", ".143230113;")
+		handle = noesis.register("Street Fighter 6 Texture [PC]", ".36")
 		noesis.setHandlerTypeCheck(handle, texCheckType)
 		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		handle = noesis.register("Street Fighter 6 Mesh", (".230110883"))
+		handle = noesis.register("Street Fighter 6 Mesh", (".220721329"))
 		noesis.setHandlerTypeCheck(handle, meshCheckType)
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
@@ -236,8 +236,7 @@ formats = {
 	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500" },
 	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
 	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
-	"SF6Beta": 		{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
-	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" }, 
+	"SF6": 			{ "modelExt": ".220721329",  "texExt": ".36", 		 "mmtrExt": ".220720447",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
 	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643" },
 	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663" },
 }
@@ -1236,7 +1235,7 @@ dialogOptions = DialogOptions()
 
 DoubleClickTimer = namedtuple("DoubleClickTimer", "name idx timer")
 
-gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "SF6Beta", "ReVerse", "ExoPrimal" ]
+gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse", "ExoPrimal" ]
 fullGameNames = [
 	"Resident Evil 7",
 	"Resident Evil 7 RT",
@@ -1248,7 +1247,6 @@ fullGameNames = [
 	"MH Rise Sunbreak",
 	"Devil May Cry 5",
 	"Street Fighter 6",
-	"Street Fighter 6 (Beta)",
 	"Resident Evil ReVerse",
 	"ExoPrimal"
 ]
@@ -2856,14 +2854,11 @@ class meshFile(object):
 		if meshVersion == 220822879:
 			isSF6 = 2
 			sGameName = "RE4"
-		elif (meshVersion == 220705151 and self.path.find(".220907984") != -1):
+		elif meshVersion == 220705151 and self.path.find(".220907984"):
 			isSF6 = 2
 			#isExoPrimal = True
 			sGameName = "ExoPrimal"
-		elif (meshVersion == 220705151 and self.path.find(".220721329") != -1):
-			sGameName = "SF6Beta"
-			isSF6 = True
-		elif (meshVersion == 220705151 and self.path.find(".230110883") != -1):
+		elif meshVersion == 220705151:
 			isSF6 = True
 			sGameName = "SF6"
 		elif meshVersion == 21041600: # or self.path.find(".2109108288") != -1: #RE2RT + RE3RT, and RE7RT
@@ -4218,7 +4213,7 @@ def meshWriteModel(mdl, bs):
 		RERTBytes = 8
 	elif ext.find(".2008058288") != -1: #Vanilla MHRise
 		sGameName = "MHRise"
-	elif ext.find(".230110883") != -1:
+	elif ext.find(".220721329") != -1:
 		sGameName = "SF6"
 		isSF6 = True
 	elif ext.find(".220907984") != -1:

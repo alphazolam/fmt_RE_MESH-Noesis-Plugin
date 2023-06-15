@@ -101,8 +101,6 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	) 
 	
 	local gamesList = #( "REVerse", "MHRSunbreak", "RE2", "RE3", "RE4", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6")
-	--This list must have the same order as gamesList:
-	local extsList = #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".230110883")
 	local currentItem = "RE4"
 	local currentItemIdx = 5
 	local currentItemIdx2 = 5
@@ -476,7 +474,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 			--checkbox chk_importMDF "Import Materials" checked:false
 			checkbox chk_folder "Import Folder" checked:false align:#left
 			checkbox chk_populateBones "Populate Bones Lists" checked:true align:#left
-			--button btn_import_SCN "Import SCN File" tooltip:"Tries to load positioned mesh files from a SCN file" --deprecated
+			button btn_import_SCN "Import SCN File" tooltip:"Tries to load positioned mesh files from a SCN file"
 			button BtnImportSkeleton "Import Bone Positions" tooltip:"Loads bone positions from the chosen MESH file onto the selected bones (by name)"
 			checkbox chk_tPose "T-Pose " offset:[20,0] checked:false tooltip:"Imports the skeleton in a T-pose. Change the threshold number to adjust how close a bone may be to another bone before it is ignored by T-pose rotation"
 			edittext Flddist "" text:(dist as String) offset:[75,-20] fieldWidth:40 labelOnTop:false
@@ -548,50 +546,46 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		)
 		
 		fn changeCurrentGame listIndex = (
-			try (
-				currentItem = gamesList[listIndex]
-				currentItemIdx = listIndex
-				lbl_currentExt.caption = case currentItem of 
-					(
-						"RE2 RT": ".mesh.2109108288"
-						"RE3 RT": ".mesh.2109108288"
-						"RE2": ".mesh.1808312334"
-						"RE3": ".mesh.1902042334"
-						"RE4": ".mesh.221108797"
-						"DMC5": ".mesh.1808282334"
-						"RE7": ".mesh.32"
-						"RE7 RT": ".mesh.220128762"
-						"RE8": ".mesh.2101050001"
-						"MHRise": ".mesh.2008058288"
-						"MHRSunbreak": ".mesh.2109148288"
-						"SF6": ".mesh.230110883"
-						"REVerse": ".mesh.2102020001"
-						default: ""
-					)
-				current_pak_location = case currentItem of 
-					(
-						"RE2 RT": re2rt_pak_location
-						"RE3 RT": re3rt_pak_location
-						"RE2": re2_pak_location
-						"RE3": re3_pak_location
-						"RE4": re4_pak_location
-						"DMC5": dmc5_pak_location
-						"RE7": re7_pak_location
-						"RE7 RT": re7rt_pak_location
-						"RE8": re8_pak_location
-						"MHRise": mhrise_pak_location
-						"MHRSunbreak": mhrise_pak_location
-						"SF6": sf6_pak_location
-						"REVerse": reve_pak_location
-						default: ""
-					)
-				
-				list_gameSelection.selection = currentItemIdx
-				current_extension = replace lbl_currentExt.caption 1 5 ""
-				edt_scnpath.text = current_pak_location
-			) catch (
-				format "Failed to set game name (%)\n" listIndex
-			)
+			currentItem = gamesList[listIndex]
+			currentItemIdx = listIndex
+			lbl_currentExt.caption = case currentItem of 
+				(
+					"RE2 RT": ".mesh.2109108288"
+					"RE3 RT": ".mesh.2109108288"
+					"RE2": ".mesh.1808312334"
+					"RE3": ".mesh.1902042334"
+					"RE4": ".mesh.221108797"
+					"DMC5": ".mesh.1808282334"
+					"RE7": ".mesh.32"
+					"RE7 RT": ".mesh.220128762"
+					"RE8": ".mesh.2101050001"
+					"MHRise": ".mesh.2008058288"
+					"MHRSunbreak": ".mesh.2109148288"
+					"SF6": ".mesh.220721329"
+					"REVerse": ".mesh.2102020001"
+					default: ""
+				)
+			current_pak_location = case currentItem of 
+				(
+					"RE2 RT": re2rt_pak_location
+					"RE3 RT": re3rt_pak_location
+					"RE2": re2_pak_location
+					"RE3": re3_pak_location
+					"RE4": re4_pak_location
+					"DMC5": dmc5_pak_location
+					"RE7": re7_pak_location
+					"RE7 RT": re7rt_pak_location
+					"RE8": re8_pak_location
+					"MHRise": mhrise_pak_location
+					"MHRSunbreak": mhrise_pak_location
+					"SF6": sf6_pak_location
+					"REVerse": reve_pak_location
+					default: ""
+				)
+			
+			list_gameSelection.selection = currentItemIdx
+			current_extension = replace lbl_currentExt.caption 1 5 ""
+			edt_scnpath.text = current_pak_location
 		)
 		
 		fn Import_MESH cmd setCoords = (
@@ -691,96 +685,86 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					
 					if success then ( 
 						
-						local currentGameIdx = findItem extsList thisExt
-						if currentGameIdx != 0 and thisExt != lastExt then (
+						if thisExt != lastExt then (
 							lastExt = thisExt
-							changeCurrentGame (currentGameIdx) 
+							--This list must have the same order as gamesList:
+							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".220721329") lastExt) 
 						)
 						
-						local objSelected = selection as array
-						local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
-						local bones = for obj in objSelected where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj 
-						local isMlist = (currentGameIdx == 0 and bones.count > 0 and ((meshes.count == 1 and meshes[1].name == "dummy") or (findString (toLower cmd) ".motlist" != undefined)))
-						if isMlist then
-							meshes = #()			
-							
-						if setCoords != undefined and not already_imported then
-							names_to_objects.setK key objSelected 
-						if not isMlist then
+						if chk_bnNumbers.checked then (				
+								
+							local objSelected = selection as array
+							if setCoords != undefined and not already_imported then
+								names_to_objects.setK key objSelected 
+								
+							local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
+							local bones = for obj in objSelected where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj 
 							for bone in bones do hide bone
-						
-						local uniqueNames = #()
-						local mainmeshes = #()
-						if not isMlist then (
-							local container = Point size:1.0
+							container = Point size:1.0
+							local uniqueNames = #(); local mainmeshes = #()
 							container.name = key
-						)
-						
-						------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-						if setCoords != undefined then (
-							if container.name != setCoords[1].Name then
-								container.name = setCoords[1].Name + " (" + container.name + ")"
-							print ("Loaded " + key + " " + (setCoords[2] as string))
-							container.rotation = setCoords[2].LocalRotation
-							container.scale = setCoords[2].LocalScale
-							container.pos = setCoords[2].LocalPosition
-							container.transform.controller.value *= (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
-							container.pos.controller.value *= 100
-						)
-						
-						for mesh in meshes do ( -- create MainMesh containers
-							fs = filterstring mesh.name "_"
-							if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
-								mainmesh = Point size:1.0
-								mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
-								mainmesh.parent = container
-								mainmesh.transform = container.transform
-								append mainmeshes mainmesh
+							------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+							if setCoords != undefined then (
+								if container.name != setCoords[1].Name then
+									container.name = setCoords[1].Name + " (" + container.name + ")"
+								print ("Loaded " + key + " " + (setCoords[2] as string))
+								container.rotation = setCoords[2].LocalRotation
+								container.scale = setCoords[2].LocalScale
+								container.pos = setCoords[2].LocalPosition
+								container.transform.controller.value *= (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
+								container.pos.controller.value *= 100
 							)
-							if setCoords != undefined then 
-								mesh.transform = container.transform
-							mesh.parent = mainmeshes[mainmeshes.count]
-						)
-						
-						--skelColor = (random 128 255) (random 128 255) (random 128 255)
-						for b = 1 to bones.count do (
-							if b == 1 and setCoords != undefined then
-								bones[b].transform = container.transform
-							bones[b].showLinks = true
-							bones[b].showLinksOnly = true
-							bones[b].wirecolor = yellow
-							local fs = filterstring bones[b].name ":"
-							if fs[2] != undefined then (
-								if (getuserprop bones[b] "Bone_Number") == undefined do setuserprop bones[b] "Bone_Number" fs[1]
-								if (getuserprop bones[b] "Bone_Name") == undefined do setuserprop bones[b] "Bone_Name" fs[2]
+							for mesh in meshes do ( -- create MainMesh containers
+								fs = filterstring mesh.name "_"
+								if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
+									mainmesh = Point size:1.0
+									mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
+									mainmesh.parent = container
+									mainmesh.transform = container.transform
+									append mainmeshes mainmesh
+								)
+								if setCoords != undefined then 
+									mesh.transform = container.transform
+								mesh.parent = mainmeshes[mainmeshes.count]
 							)
-						)
-						
-						for mesh in meshes do (
-							mesh.material = undefined
-							mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
-							if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
-							select mesh
-							max modify mode
 							
-							mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".230110883" then 6 else 8 )
-							if chk_populateBones.checked then (
+							--skelColor = (random 128 255) (random 128 255) (random 128 255)
+							for mesh in meshes do (
+								mesh.material = undefined
+								mesh.wirecolor = color (random 0 255) (random 0 255) (random 0 255)
+								if getNumVerts mesh == 3 or mesh.modifiers[#Skin] == undefined or already_imported then continue
+								select mesh
+								max modify mode
+								
+								mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".220721329" then 6 else 8 )
+								
 								for b = 1 to bones.count do (
-									local fs = filterstring bones[b].name ":"
-									local bnIdx = findBoneIdx mesh.modifiers[#Skin] bones[b].name
-									if bnIdx == 0 then ( -- add bones to Skin that have numbers but are not currently in
-										if fs.count > 1 then 
-											skinOps.addBone mesh.modifiers[#Skin] bones[b] 0
-									) else if fs.count == 1 then ( -- remove bones from Skin that have no numbers
-										skinOps.selectbone mesh.modifiers[#Skin] bnIdx
-										skinOps.removebone mesh.modifiers[#Skin]
+									if b == 1 and setCoords != undefined then
+										bones[b].transform = container.transform
+									bones[b].showLinks = true
+									bones[b].showLinksOnly = true
+									bones[b].wirecolor = yellow
+									
+									fs = filterstring bones[b].name ":"
+									if fs[2] != undefined then (
+										if (getuserprop bones[b] "Bone_Number") == undefined do setuserprop bones[b] "Bone_Number" fs[1]
+										if (getuserprop bones[b] "Bone_Name") == undefined do setuserprop bones[b] "Bone_Name" fs[2]
+									)
+									if chk_populateBones.checked then (
+										bnIdx = findBoneIdx mesh.modifiers[#Skin] bones[b].name
+										if bnIdx == 0 then ( -- add bones to Skin that have numbers but are not currently in
+											if fs.count > 1 then 
+												skinOps.addBone mesh.modifiers[#Skin] bones[b] 0
+										) else if fs.count == 1 then ( -- remove bones from Skin that have no numbers
+											skinOps.selectbone mesh.modifiers[#Skin] bnIdx
+											skinOps.removebone mesh.modifiers[#Skin]
+										)
 									)
 								)
 							)
 						)
 					)
-					if success and not isMlist then
-						chk_showPlugOpt.checked = false
+					chk_showPlugOpt.checked = false
 				)
 			) else print("Not found: " + cmd)
 		)
@@ -921,7 +905,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine MESH/MOTLIST|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.230110883;*.1808312334;*.2102020001;*.60;*.85;*.99;*.484;*.486;*.524;*.528;*.653;*.663|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine MESH/MOTLIST|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001;*.60;*.85;*.99;*.484;*.486;*.524;*.528;*.653;*.663|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
@@ -942,7 +926,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						"MHRSunbreak": getSaveFileName types:"MHRSunbreak(*.2109148288)|*.2109148288|"
 						"RE2 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
 						"RE3 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
-						"SF6" : getSaveFileName types:"RT(*.230110883)|*.230110883|"
+						"SF6" : getSaveFileName types:"RT(*.220721329)|*.220721329|"
 						"REVerse" : getSaveFileName types:"REVerse(*.2102020001)|*.2102020001"
 						default: getSaveFileName types:" \
 							DMC5(*.1808282334)|*.1808282334| \
@@ -956,11 +940,11 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							RE3 RT(*.2109108288)|*.2109108288| \
 							MHRise(*.2008058288)|*.2008058288| \
 							MHRSunbreak(*.2109148288)|*.2109148288| \
-							SF6(*.230110883)|*.230110883| \
+							SF6(*.220721329)|*.220721329| \
 							REVerse(*.2102020001)|*.2102020001| "
 					) 
 				) else
-					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.230110883;*.2102020001|All|*.*|"
+					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.220721329;*.2102020001|All|*.*|"
 					
 				if cmd != undefined and cmd != "" then (
 					local fbx_path = (getFilenamePath cmd) + (getFilenameFile (getFilenameFile cmd))
@@ -996,21 +980,22 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					
 					format "Exporting with % bones selected\n" selectedBones.count
 					
-					for obj in originalSelection where obj.modifiers[#Skin] != undefined do ( 
-						try (
-							if not chk_manualBoneSelect.checked then
+					if not chk_manualBoneSelect.checked then ( -- or selectedBones.count == 0 then (
+						for obj in originalSelection where obj.modifiers[#Skin] != undefined do ( 
+							try (
 								selectSkeleton obj
-						) catch 
-							print "Could not select skeleton! Select bones manually before export"
-						if chk_writeBones.checked then ( --Create dummy mesh with all bones in skin modifier so that FBX will save all bones
-							maxOps.cloneNodes obj cloneType:#copy newNodes:&copyNodes #nodialog
-							lastSelection = (selection as array); select copyNodes[1]; copyNodes[1].name = "FBXBoneStorage"
-							for bn in lastSelection do 
-								if superclassof bn == Helper or classof bn == BoneGeometry then 
-									skinops.addBone copyNodes[1].modifiers[#Skin] bn 0
-							selectmore lastSelection
+								if chk_writeBones.checked then ( --Create dummy mesh with all bones in skin modifier so that FBX will save all bones
+									maxOps.cloneNodes obj cloneType:#copy newNodes:&copyNodes #nodialog
+									lastSelection = (selection as array); select copyNodes[1]; copyNodes[1].name = "FBXBoneStorage"
+									for bn in lastSelection do 
+										if superclassof bn == Helper or classof bn == BoneGeometry then 
+											skinops.addBone copyNodes[1].modifiers[#Skin] bn 0
+									selectmore lastSelection
+								)
+								exit
+							) catch ( print "Could not select skeleton! Select bones manually before export" )
 						)
-						exit
+						
 						/*skinnedNodes = for obj in originalSelection where obj.modifiers[#Skin] != undefined collect obj
 						try (
 							--selectSkeleton obj
@@ -1026,8 +1011,6 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							exit
 						) catch ( print "Could not select skeleton! Select bones manually before export" )*/
 					)
-					
-
 					
 					if chk_showPlugOpt.checked then (--chk_expPrompt
 						exportFile fbx_path selectedOnly:true using:FBXEXP
