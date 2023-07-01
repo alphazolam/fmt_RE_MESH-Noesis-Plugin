@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.16 (June 2, 2023)"
+Version = "v3.16a (June 30, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -1301,8 +1301,8 @@ class openOptionsDialogImportWindow:
 			dialogOptions.motDialog = openOptionsDialogImportWindow(None, None, {"isMotlist": True})
 			self.noeWnd.closeWindow()
 			#dialogOptions.motDialog.createMotlistWindow()
-		
-	def openOptionsButtonLoadEntry(self, noeWnd, controlId, wParam, lParam):
+	
+	def clickLoadButton(self):
 		self.isOpen = False
 		if self.isMotlist:
 			self.loadedMlists = {}
@@ -1322,6 +1322,9 @@ class openOptionsDialogImportWindow:
 							self.loadItems.append(mot.name)
 							self.fullLoadItems.append(fullPath)
 		self.noeWnd.closeWindow()
+		
+	def openOptionsButtonLoadEntry(self, noeWnd, controlId, wParam, lParam):
+		self.clickLoadButton()
 			
 	def openOptionsButtonCancel(self, noeWnd, controlId, wParam, lParam):
 		self.isCancelled = True
@@ -1697,6 +1700,9 @@ class openOptionsDialogImportWindow:
 			self.setPakList()
 			self.setGameBox(self.gameBox)
 			self.setLocalBox(self.localBox)
+			
+			if noesis.optWasInvoked("-b"):
+				self.clickLoadButton()
 			
 			self.noeWnd.doModal()
 	

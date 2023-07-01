@@ -5,7 +5,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	--Last Release: June 2, 2023
 	--Authors: alphaZomega, mariokart64n
 	
-	local noesis_path = 		"C:\\Program Files\\_Noesis\\Noesis.exe"
+	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
 	
 	local re2_pak_location = 	"F:\\modmanager\\REtool\\RE2_chunk_000\\natives\\x64\\"
 	local re3_pak_location = 	"F:\\modmanager\\REtool\\RE3_chunk_000\\natives\\stm\\"
@@ -546,43 +546,44 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		)
 		
 		fn changeCurrentGame listIndex = (
-			currentItem = gamesList[listIndex]
-			currentItemIdx = listIndex
-			lbl_currentExt.caption = case currentItem of 
-				(
-					"RE2 RT": ".mesh.2109108288"
-					"RE3 RT": ".mesh.2109108288"
-					"RE2": ".mesh.1808312334"
-					"RE3": ".mesh.1902042334"
-					"RE4": ".mesh.221108797"
-					"DMC5": ".mesh.1808282334"
-					"RE7": ".mesh.32"
-					"RE7 RT": ".mesh.220128762"
-					"RE8": ".mesh.2101050001"
-					"MHRise": ".mesh.2008058288"
-					"MHRSunbreak": ".mesh.2109148288"
-					"SF6": ".mesh.230110883"
-					"REVerse": ".mesh.2102020001"
-					default: ""
-				)
-			current_pak_location = case currentItem of 
-				(
-					"RE2 RT": re2rt_pak_location
-					"RE3 RT": re3rt_pak_location
-					"RE2": re2_pak_location
-					"RE3": re3_pak_location
-					"RE4": re4_pak_location
-					"DMC5": dmc5_pak_location
-					"RE7": re7_pak_location
-					"RE7 RT": re7rt_pak_location
-					"RE8": re8_pak_location
-					"MHRise": mhrise_pak_location
-					"MHRSunbreak": mhrise_pak_location
-					"SF6": sf6_pak_location
-					"REVerse": reve_pak_location
-					default: ""
-				)
-			
+			try (
+				currentItem = gamesList[listIndex]
+				currentItemIdx = listIndex
+				lbl_currentExt.caption = case currentItem of 
+					(
+						"RE2 RT": ".mesh.2109108288"
+						"RE3 RT": ".mesh.2109108288"
+						"RE2": ".mesh.1808312334"
+						"RE3": ".mesh.1902042334"
+						"RE4": ".mesh.221108797"
+						"DMC5": ".mesh.1808282334"
+						"RE7": ".mesh.32"
+						"RE7 RT": ".mesh.220128762"
+						"RE8": ".mesh.2101050001"
+						"MHRise": ".mesh.2008058288"
+						"MHRSunbreak": ".mesh.2109148288"
+						"SF6": ".mesh.230110883"
+						"REVerse": ".mesh.2102020001"
+						default: ""
+					)
+				current_pak_location = case currentItem of 
+					(
+						"RE2 RT": re2rt_pak_location
+						"RE3 RT": re3rt_pak_location
+						"RE2": re2_pak_location
+						"RE3": re3_pak_location
+						"RE4": re4_pak_location
+						"DMC5": dmc5_pak_location
+						"RE7": re7_pak_location
+						"RE7 RT": re7rt_pak_location
+						"RE8": re8_pak_location
+						"MHRise": mhrise_pak_location
+						"MHRSunbreak": mhrise_pak_location
+						"SF6": sf6_pak_location
+						"REVerse": reve_pak_location
+						default: ""
+					)
+			) catch ( undefined )
 			list_gameSelection.selection = currentItemIdx
 			current_extension = replace lbl_currentExt.caption 1 5 ""
 			edt_scnpath.text = current_pak_location
@@ -608,6 +609,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					cmd = files[f]
 					
 					local thisExt = getFilenameType cmd
+					local orig_path = cmd
 					local key = getFilenameFile (getFilenameFile cmd)
 					local old_obj = undefined
 					local already_imported = false
@@ -691,13 +693,17 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".230110883") lastExt) 
 						)
 						
-						if chk_bnNumbers.checked then (				
-								
-							local objSelected = selection as array
+						local objSelected = selection as array
+						local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
+						
+						if (findstring orig_path ".motlist.") != undefined then
+							
+							delete meshes[1] --delete dummy
+							
+						else if chk_bnNumbers.checked then (
+							
 							if setCoords != undefined and not already_imported then
 								names_to_objects.setK key objSelected 
-								
-							local meshes = for obj in objSelected where (classof obj == Editable_mesh) collect obj 
 							local bones = for obj in objSelected where (superclassof obj == Helper or classof obj == BoneGeometry) collect obj 
 							for bone in bones do hide bone
 							container = Point size:1.0
@@ -714,18 +720,21 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 								container.transform.controller.value *= (matrix3 [1,0,0] [0,0,1] [0,-1,0] [0,0,0])
 								container.pos.controller.value *= 100
 							)
+							
 							for mesh in meshes do ( -- create MainMesh containers
 								fs = filterstring mesh.name "_"
-								if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
-									mainmesh = Point size:1.0
-									mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
-									mainmesh.parent = container
-									mainmesh.transform = container.transform
-									append mainmeshes mainmesh
+								if fs.count >= 3 then (
+									if appendIfUnique uniqueNames (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4]) then (
+										mainmesh = Point size:1.0
+										mainmesh.name = (fs[1] + "_" + fs[2] + "_" + fs[3] + "_" + fs[4])
+										mainmesh.parent = container
+										mainmesh.transform = container.transform
+										append mainmeshes mainmesh
+									)
+									if setCoords != undefined then 
+										mesh.transform = container.transform
+									mesh.parent = mainmeshes[mainmeshes.count]
 								)
-								if setCoords != undefined then 
-									mesh.transform = container.transform
-								mesh.parent = mainmeshes[mainmeshes.count]
 							)
 							
 							--skelColor = (random 128 255) (random 128 255) (random 128 255)
