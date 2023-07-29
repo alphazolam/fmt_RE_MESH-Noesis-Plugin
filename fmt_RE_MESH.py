@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.16a (June 30, 2023)"
+Version = "v3.17 (July 29, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -936,8 +936,8 @@ def texWriteRGBA(data, width, height, bs):
 	print ("\n			----RE Engine TEX Export----\n")
 	
 	version_no = int(os.path.splitext(rapi.getOutputName())[1][1:])
-	if noesis.optWasInvoked("-b"): # and version_no >= 28 and version_no < 1000: #batch / no-prompt
-		return texWriteRGBA2(data, width, height, bs, version_no)
+	#if noesis.optWasInvoked("-b"): # and version_no >= 28 and version_no < 1000: #batch / no-prompt
+	#	return texWriteRGBA2(data, width, height, bs, version_no)
 		
 	def getExportName(fileName):		
 		if fileName == None:
@@ -955,18 +955,21 @@ def texWriteRGBA(data, width, height, bs):
 		return newTexName
 		
 	fileName = None
-	newTexName = getExportName(fileName)
-	if newTexName == None:
-		return 0
-		
-	while not (rapi.checkFileExists(newTexName)):
-		print ("File not found")
-		newTexName = getExportName(fileName)	
-		fileName = newTexName
+	if noesis.optWasInvoked("-b"):
+		newTexName, ext = findSourceTexFile(version_no)
+	else:
+		newTexName = getExportName(fileName)
 		if newTexName == None:
-			return 0	
-	
+			return 0
+		while not (rapi.checkFileExists(newTexName)):
+			print ("File not found")
+			newTexName = getExportName(fileName)	
+			fileName = newTexName
+			if newTexName == None:
+				return 0
+		
 	bTexAsSource = False		
+	print(newTexName)
 	newTEX = rapi.loadIntoByteArray(newTexName)
 	oldDDS = rapi.loadIntoByteArray(rapi.getInputName())
 	
@@ -3256,8 +3259,9 @@ class meshFile(object):
 							if rapi.checkFileExists(self.rootDir + testPath) or rapi.checkFileExists(extractedNativesPath + testPath):
 								self.texNames.append(newTexPath.replace('streaming/',''))
 				
+				lowerTexName = texName.lower()
 				#if (("BaseMetal" in textureType or "BaseDielectric" in textureType or "BaseAlpha" in textureType or "BaseShift" in textureType)) and not bFoundBM: #
-				if "_alb" in texName.lower() and not bFoundBM: #goddamn RE8
+				if "_alb" in lowerTexName and (not bFoundBM or ("_albm" in lowerTexName or "_albd" in lowerTexName)): #goddamn RE8
 					bFoundBM = True
 					material.setTexture(texName)
 					print("set diffuse", texBaseColour[i])
@@ -3268,9 +3272,9 @@ class meshFile(object):
 						extraParam = "isALBM"
 					if "Dielectric" in textureType:
 						extraParam = "isALBD"
-					self.uvBias[material.name] = [0.5, 0.5] if sGameName == "RE7RT" and "atlas" in texName.lower() else 1.0
-				#elif (("Normal" in textureType or "NR" in textureType) or "_nr" in texName.lower()) and not bFoundNM:
-				elif "_nr" in texName.lower() and not bFoundNM:
+					self.uvBias[material.name] = [0.5, 0.5] if sGameName == "RE7RT" and "atlas" in lowerTexName else 1.0
+				#elif (("Normal" in textureType or "NR" in textureType) or "_nr" in lowerTexName) and not bFoundNM:
+				elif "_nr" in lowerTexName and not bFoundNM:
 					bFoundNM = True
 					material.setNormalTexture(texName)
 					extraParam = "isNRM"
@@ -3285,10 +3289,10 @@ class meshFile(object):
 					material.setOcclTexture(texName.replace(texOutputExt,  "_NoesisAO" + texOutputExt))
 				elif textureType == "AlphaMap":
 					opacityName = texName
-				#elif "_lymo" in texName.lower():
+				#elif "_lymo" in lowerTexName:
 				#	extraParam = "isLYMO"
 				elif re.search("^Base.*Map$", textureType) and not secondaryDiffuse:
-				#elif ("_alb" in texName.lower()) and not secondaryDiffuse:
+				#elif ("_alb" in lowerTexName) and not secondaryDiffuse:
 					secondaryDiffuse = texName
 				elif not dialogOptions.loadAllTextures:
 					isNotMainTexture = True
@@ -3847,6 +3851,7 @@ class meshFile(object):
 								rapi.rpgCommitTriangles(None, noesis.RPGEODATA_USHORT, (meshVertexInfo[j][4] - (vertsBefore)), noesis.RPGEO_POINTS, 0x1)
 							else:
 								rapi.rpgSetStripEnder(0x10000)
+								
 								rapi.rpgCommitTriangles(indexBuffer, noesis.RPGEODATA_USHORT, numFaces, noesis.RPGEO_TRIANGLE, 0x1)
 								rapi.rpgClearBufferBinds()
 					
@@ -4162,7 +4167,7 @@ def meshWriteModel(mdl, bs):
 					if bone.name == mesh.name: #fbx is stupid and adds submeshes as bones to boneless meshes
 						submeshBoneCount = submeshBoneCount + 1
 						break
-			if len(mdl.bones) > 0 and submeshBoneCount != len(submeshes):
+			if len(mdl.bones) > 0 and len(mdl.bones) - submeshBoneCount > 0:
 				bDoSkin = True
 					
 	#Prompt for source mesh to export over / export options:
@@ -4277,7 +4282,7 @@ def meshWriteModel(mdl, bs):
 			print("Source Mesh:\n", newMeshName)
 		else:
 			return 0
-	
+			
 	if bDoSkin:
 		print ("  Rigged mesh detected, exporting with skin weights...")
 	else:
@@ -4880,6 +4885,7 @@ def meshWriteModel(mdl, bs):
 		for i in range(numMats): 
 			bs.writeUInt64(nameStringsOffs)
 			nameStringsOffs += len(materialNames[i]) + 1
+			
 		if bDoSkin:
 			for i in range(len(mdl.bones)): 
 				bs.writeUInt64(nameStringsOffs)
@@ -4982,6 +4988,10 @@ def meshWriteModel(mdl, bs):
 	submeshFaceStride = []
 	submeshFaceSize = []
 	boneWeightBBs = {}
+
+	for mesh in submeshes:
+		if len(mesh.morphList) > 0:
+			mesh.positions = mesh.morphList[0].positions
 
 	#Write vertex data
 	vertexPosStart = bs.tell()
