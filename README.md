@@ -10,6 +10,7 @@ A plugin for Rich Whitehouse's Noesis to import and export RE Engine meshes, tex
 - Devil May Cry 5
 - Monster Hunter Rise
 - Street Fighter 6
+- ExoPrimal
 
 
 ## INSTALLATION:
@@ -23,13 +24,20 @@ To use the optional Noesis Maxscript (REEM Noesis CMD), you should edit the incl
 Then you can run the maxscript in 3dsMax with Scripts -> Run Script, and use it to remote-control Noesis as to seamlessly import and export with a GUI inside 3dsmax.
 
 
+### Tips
+- The plugin supports opening RE Engine SCN files. These files can contain a list of meshes at certain positions, constituting a stage or map
+- The plugin saves the location of your extracted re_chunk_000.pak folder ("Base Directory") for each game in a txt file next to the plugin. Edit this file if it is not correct
+- In the mesh/animation import window, double click ".." to go up a parent directory, or paste in a directory into the text box to go there
+- You can load multiple meshes together in addition to the mesh you first selected. They and their bones will be merged together into the same model
+- When loading a mesh, click the "Select Animation" button to load motlist animations with it, useful for quickly testing rigging
+
+
 ### For more info on REEM, check out this guide:
 https://residentevilmodding.boards.net/thread/15374/noesis-maxscript-custom-physics-guide
 
 
-### Main Threads for Updates:
+### More Info on the plugin:
 https://residentevilmodding.boards.net/thread/13501/exporting-custom-models-dmc5-noesis
-https://residentevilmodding.boards.net/thread/14726/re8-mhrise-modding-tools
 
 
 ### Credits

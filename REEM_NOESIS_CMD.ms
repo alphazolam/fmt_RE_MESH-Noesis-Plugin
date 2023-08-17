@@ -1,8 +1,8 @@
 try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.46
-	--Last Release: June 2, 2023
+	--Version: v0.47
+	--Last Release: August 17, 2023
 	--Authors: alphaZomega, mariokart64n
 	
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
@@ -62,7 +62,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 			val = bsearch #(k) table binSort  
 			if val == undefined then return val  
 			val[2]  
-		),  
+		),
 		fn setK k v =  (  
 			val = bsearch #(k) table binSort  
 			if val == undefined then  (  
@@ -461,7 +461,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	
 	--print current_pak_location
 	
-	rollout formNoesisCMD "REEM Noesis 0.46" (
+	rollout formNoesisCMD "REEM Noesis 0.47" (
 		
 		local dist = 1.0
 		
@@ -1021,6 +1021,15 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						) catch ( print "Could not select skeleton! Select bones manually before export" )*/
 					)
 					
+					local morph_meshes = for obj in selection where superclassof obj == GeometryClass and obj.modifiers[#Morpher] != undefined and obj.modifiers[#Skin] != undefined collect obj
+					
+					for mesh in morph_meshes do (
+						local skin = mesh.modifiers[#Skin]
+						local skin_copy = copy mesh.modifiers[#Skin]
+						addModifierWithLocalData mesh skin_copy mesh mesh.modifiers[#Skin]
+						deleteModifier mesh mesh.modifiers[#Skin]
+					)
+					
 					if chk_showPlugOpt.checked then (--chk_expPrompt
 						exportFile fbx_path selectedOnly:true using:FBXEXP
 					) else (
@@ -1038,7 +1047,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							+ (if chk_bnNumbers.checked then " -bonenumbers" else "") \
 							+ (if chk_showOptions.checked then " -adv" else "") \  
 							+ (if chk_doVFX.checked then " -vfx" else "") \  
-							+ (if chk_reWrite.checked then " -rewrite" else (" -meshfile \"" + cmd + "\"")) \ 
+							+ (if chk_reWrite.checked then " -rewrite" else (" -meshfile \"" + cmd + "\""))
 						)
 						
 						if chk_showCMD.checked then 

@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes 
-Version = "v3.17 (July 29, 2023)"
+Version = "v3.18 (August 17, 2023)"
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -64,6 +64,9 @@ bForceRootBoneToBone0		= True					#If the root bone is detected as the last bone
 bAddBoneNumbers 			= 2						#Adds bone numbers and colons before bone names to indicate if they are active. 0 = Off, 1 = On, 2 = Auto
 bRotateBonesUpright			= False					#Rotates bones to be upright for editing and then back to normal for exporting
 bReadGroupIds				= True					#Import/Export with the GroupID as the MainMesh number
+
+#Plugin GUI
+iListboxSize  				= 280					#The height of the list box in the plugin's import menu
 
 from inc_noesis import *
 from collections import namedtuple
@@ -1227,7 +1230,7 @@ class DialogOptions:
 		self.doForceMergeAnims = False
 		self.doConvertMatsForBlender = doConvertMatsForBlender
 		self.width = 600
-		self.height = 850
+		self.height = 810 - (380 - iListboxSize)
 		self.texDicts = None
 		self.gameName = sGameName
 		self.currentDir = ""
@@ -1580,7 +1583,7 @@ class openOptionsDialogImportWindow:
 			self.noeWnd.y = noeWindowRect[1] + windowMargin  
 		return self.noeWnd.createWindow()
 		
-	def createMotlistWindow(self, width=dialogOptions.width, height=dialogOptions.height):
+	def createMotlistWindow(self, width=dialogOptions.width, height=800):
 		
 		if self.create(width, height):
 			self.noeWnd.setFont("Futura", 14)
@@ -1593,39 +1596,39 @@ class openOptionsDialogImportWindow:
 			self.pakList = self.noeWnd.getControlByIndex(index)
 			
 			self.noeWnd.createStatic("Motions:", 5, 240, width-20, 20)
-			index = self.noeWnd.createListBox(5, 260, width-20, 240, self.selectMotlistItem, noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
+			index = self.noeWnd.createListBox(5, 260, width-20, 200, self.selectMotlistItem, noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
 			self.motLoadList = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createStatic("Motions to load:", 5, 505, width-20, 20)
-			index = self.noeWnd.createListBox(5, 525, width-40, 150, self.selectLoadListItem, noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
+			self.noeWnd.createStatic("Motions to load:", 5, 465, width-20, 20)
+			index = self.noeWnd.createListBox(5, 485, width-40, 150, self.selectLoadListItem, noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
 			self.loadList = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createButton("↑", width-30, 565, 20, 30, self.pressLoadListUpButton)
-			self.noeWnd.createButton("↓", width-30, 605, 20, 30, self.pressLoadListDownButton)
+			self.noeWnd.createButton("↑", width-30, 525, 20, 30, self.pressLoadListUpButton)
+			self.noeWnd.createButton("↓", width-30, 565, 20, 30, self.pressLoadListDownButton)
 			
 			if True:
-				index = self.noeWnd.createCheckBox("Force Center", 10, 685, 100, 30, self.checkFCenterCheckbox)
+				index = self.noeWnd.createCheckBox("Force Center", 10, 640, 100, 30, self.checkFCenterCheckbox)
 				self.FCenterCheckbox = self.noeWnd.getControlByIndex(index)
 				self.FCenterCheckbox.setChecked(dialogOptions.doForceCenter)
 				
-				index = self.noeWnd.createCheckBox("Sync by Frame Count", 10, 715, 160, 30, self.checkSyncCheckbox)
+				index = self.noeWnd.createCheckBox("Sync by Frame Count", 10, 670, 160, 30, self.checkSyncCheckbox)
 				self.syncCheckbox = self.noeWnd.getControlByIndex(index)
 				self.syncCheckbox.setChecked(dialogOptions.doSync)
 				
-				index = self.noeWnd.createCheckBox("Force Merge All", 10, 745, 160, 30, self.checkForceMergeCheckbox)
+				index = self.noeWnd.createCheckBox("Force Merge All", 10, 700, 160, 30, self.checkForceMergeCheckbox)
 				self.forceMergeCheckbox = self.noeWnd.getControlByIndex(index)
 				self.forceMergeCheckbox.setChecked(dialogOptions.doForceMergeAnims)
 
-			self.noeWnd.createStatic("Game:", width-218, height-160, 60, 20)
-			index = self.noeWnd.createComboBox(width-170, height-165, 150, 20, self.selectGameBoxItem, noewin.CBS_DROPDOWNLIST) #CB
+			self.noeWnd.createStatic("Game:", width-218, 645, 60, 20)
+			index = self.noeWnd.createComboBox(width-170, 645, 150, 20, self.selectGameBoxItem, noewin.CBS_DROPDOWNLIST) #CB
 			self.gameBox = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createStatic("View:", width-210, height-130, 60, 20)
-			index = self.noeWnd.createComboBox(width-170, height-135, 150, 20, self.selectLocalBoxItem, noewin.CBS_DROPDOWNLIST) #CB
+			self.noeWnd.createStatic("View:", width-210, 675, 60, 20)
+			index = self.noeWnd.createComboBox(width-170, 675, 150, 20, self.selectLocalBoxItem, noewin.CBS_DROPDOWNLIST) #CB
 			self.localBox = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createStatic("Scale:", width-215, height-100, 60, 20)
-			index = self.noeWnd.createEditBox(width-170, height-100, 80, 20, str(fDefaultMeshScale), self.inputGlobalScaleEditBox, False) #EB
+			self.noeWnd.createStatic("Scale:", width-215,705, 60, 20)
+			index = self.noeWnd.createEditBox(width-170, 705, 80, 20, str(fDefaultMeshScale), self.inputGlobalScaleEditBox, False) #EB
 			self.globalScaleEditBox = self.noeWnd.getControlByIndex(index)
 			
 			self.noeWnd.createButton("Load" if not self.isMotlist or self.args.get("motlist") else "OK", 5, height-70, width-160, 30, self.openOptionsButtonLoadEntry)
@@ -1644,60 +1647,59 @@ class openOptionsDialogImportWindow:
 		if self.create(width, height):
 			self.noeWnd.setFont("Futura", 14)
 			
-			self.noeWnd.createStatic("Mesh files from:", 5, 45, width-20, 20)
-			index = self.noeWnd.createEditBox(5, 65, width-20, 45, dialogOptions.currentDir, self.inputCurrentDirEditBox) #EB
+			self.noeWnd.createStatic("Mesh files from:", 5, 5, width-20, 20)
+			index = self.noeWnd.createEditBox(5, 25, width-20, 45, dialogOptions.currentDir, self.inputCurrentDirEditBox) #EB
 			self.currentDirEditBox = self.noeWnd.getControlByIndex(index)
 			
-			index = self.noeWnd.createListBox(5, 120, width-20, 380, self.selectPakListItem, noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
+			index = self.noeWnd.createListBox(5, 80, width-20, iListboxSize, self.selectPakListItem, noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
 			self.pakList = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createStatic("Files to load:", 5, 505, width-20, 20)
-			index = self.noeWnd.createListBox(5, 525, width-40, 150, self.selectLoadListItem,  noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
+			self.noeWnd.createStatic("Files to load:", 5, iListboxSize+85, width-20, 20)
+			index = self.noeWnd.createListBox(5, iListboxSize+105, width-40, 150, self.selectLoadListItem,  noewin.LBS_NOTIFY | noewin.WS_VSCROLL | noewin.WS_BORDER) #LB
 			self.loadList = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createButton("↑", width-30, 565, 20, 30, self.pressLoadListUpButton)
-			self.noeWnd.createButton("↓", width-30, 605, 20, 30, self.pressLoadListDownButton)
-			
+			self.noeWnd.createButton("↑", width-30, iListboxSize+145, 20, 30, self.pressLoadListUpButton)
+			self.noeWnd.createButton("↓", width-30, iListboxSize+185, 20, 30, self.pressLoadListDownButton)
 			
 			if True:
-				index = self.noeWnd.createCheckBox("Load Textures", 10, 685, 130, 30, self.checkLoadTexCheckbox)
+				index = self.noeWnd.createCheckBox("Load Textures", 10, iListboxSize+265, 130, 30, self.checkLoadTexCheckbox)
 				self.loadTexCheckbox = self.noeWnd.getControlByIndex(index)
 				self.loadTexCheckbox.setChecked(dialogOptions.doLoadTex)
 				
 				
-				index = self.noeWnd.createCheckBox("Load All Textures", 150, 685, 160, 30, self.checkLoadAllTexCheckbox)
+				index = self.noeWnd.createCheckBox("Load All Textures", 150, iListboxSize+265, 160, 30, self.checkLoadAllTexCheckbox)
 				self.loadAllTexCheckbox = self.noeWnd.getControlByIndex(index)
 				self.loadAllTexCheckbox.setChecked(dialogOptions.loadAllTextures)
 				
-				index = self.noeWnd.createCheckBox("Convert Textures", 10, 715, 130, 30, self.checkConvTexCheckbox)
+				index = self.noeWnd.createCheckBox("Convert Textures", 10, iListboxSize+295, 130, 30, self.checkConvTexCheckbox)
 				self.convTexCheckbox = self.noeWnd.getControlByIndex(index)
 				self.convTexCheckbox.setChecked(dialogOptions.doConvertTex)
 				
-				index = self.noeWnd.createCheckBox("Collapse Bones", 150, 715, 120, 30, self.checkReparentCheckbox)
+				index = self.noeWnd.createCheckBox("Collapse Bones", 150, iListboxSize+295, 120, 30, self.checkReparentCheckbox)
 				self.reparentCheckbox = self.noeWnd.getControlByIndex(index)
 				self.reparentCheckbox.setChecked(dialogOptions.reparentHelpers)
 				
-				'''index = self.noeWnd.createCheckBox("Import LODs", 10, 745, 100, 30, self.checkLODsCheckbox) #TODO
+				'''index = self.noeWnd.createCheckBox("Import LODs", 10, iListboxSize+365, 100, 30, self.checkLODsCheckbox) #TODO
 				self.LODsCheckbox = self.noeWnd.getControlByIndex(index)
 				self.LODsCheckbox.setChecked(dialogOptions.doLODs)'''
 				
-				self.noeWnd.createButton("Select Animations", 150, 745, 200, 30, self.openMotlistDialogButton)
+				self.noeWnd.createButton("Select Animations", 150, iListboxSize+325, 200, 30, self.openMotlistDialogButton)
 
-			self.noeWnd.createStatic("Game:", width-248, 690, 60, 20)
-			index = self.noeWnd.createComboBox(width-200, 685, 180, 20, self.selectGameBoxItem, noewin.CBS_DROPDOWNLIST) #CB
+			self.noeWnd.createStatic("Game:", width-248, iListboxSize+270, 60, 20)
+			index = self.noeWnd.createComboBox(width-200, iListboxSize+265, 180, 20, self.selectGameBoxItem, noewin.CBS_DROPDOWNLIST) #CB
 			self.gameBox = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createStatic("View:", width-240, 720, 60, 20)
-			index = self.noeWnd.createComboBox(width-200, 715, 180, 20, self.selectLocalBoxItem, noewin.CBS_DROPDOWNLIST) #CB
+			self.noeWnd.createStatic("View:", width-240, iListboxSize+300, 60, 20)
+			index = self.noeWnd.createComboBox(width-200, iListboxSize+295, 180, 20, self.selectLocalBoxItem, noewin.CBS_DROPDOWNLIST) #CB
 			self.localBox = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createStatic("Scale:", width-145, 750, 60, 20)
-			index = self.noeWnd.createEditBox(width-100, 750, 80, 20, str(fDefaultMeshScale), self.inputGlobalScaleEditBox, False) #EB
+			self.noeWnd.createStatic("Scale:", width-145, iListboxSize+330, 60, 20)
+			index = self.noeWnd.createEditBox(width-100, iListboxSize+330, 80, 20, str(fDefaultMeshScale), self.inputGlobalScaleEditBox, False) #EB
 			self.globalScaleEditBox = self.noeWnd.getControlByIndex(index)
 			
-			self.noeWnd.createButton("Load", 5, height-70, width-160, 30, self.openOptionsButtonLoadEntry)
-			#self.noeWnd.createButton("Select Animations", width-240, height-70, 130, 30, self.openMotlistDialogButton)
-			self.noeWnd.createButton("Cancel", width-96, height-70, 80, 30, self.openOptionsButtonCancel)
+			self.noeWnd.createButton("Load", 5, iListboxSize+360, width-160, 30, self.openOptionsButtonLoadEntry)
+			
+			self.noeWnd.createButton("Cancel", width-96, iListboxSize+360, 80, 30, self.openOptionsButtonCancel)
 			
 			self.setLoadList(self.loadItems)
 			self.setPakList()
@@ -1995,12 +1997,14 @@ def SCNLoadModel(data, mdlList):
 	
 	global sGameName
 	fName = rapi.getInputName().upper()
-	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "DMC5"
+	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName \
+	else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "ExoPrimal" if ("EXO" in fName or "EXP" in fName) else "DMC5"
 	guessedName = guessedName + "RT" if (guessedName + "RT") in fName else guessedName
-	inputName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "SCN Import", "Input the game name", guessedName, None)
+	msg = ''.join([name + ", " for name, formatList in formats.items()])
+	inputName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "SCN Import", "Input the game name:  " + msg, guessedName, None)
 	if not inputName: 
 		return 0
-	inputName = inputName.upper()
+	#inputName = inputName.upper()
 	isRTRemake = (inputName != "RE7RT" and "RT" in inputName)
 	inputName = inputName.replace("RT", "") if isRTRemake else inputName
 	if inputName not in formats:
@@ -2766,7 +2770,7 @@ def motlistLoadModel(data, mdlList):
 	mlDialog = openOptionsDialogImportWindow(None, None, {"motlist":motlist, "isMotlist":True})
 	mlDialog.createMotlistWindow()
 	
-	mdl= NoeModel()
+	mdl = NoeModel()
 	
 	if not mlDialog.isCancelled:
 		mdl.setBones(mlDialog.pak.bones)
@@ -2867,7 +2871,7 @@ class meshFile(object):
 			isSF6 = 2
 			#isExoPrimal = True
 			sGameName = "ExoPrimal"
-		elif (meshVersion == 220705151 and self.path.find(".230110883") != -1):
+		elif (meshVersion == 220705151 and (self.path.find(".230110883") != -1) or self.path.find(".220721329") != -1):
 			isSF6 = True
 			sGameName = "SF6"
 		elif meshVersion == 21041600: # or self.path.find(".2109108288") != -1: #RE2RT + RE3RT, and RE7RT
@@ -3901,7 +3905,10 @@ class meshFile(object):
 				bs.seek(lastFacesPos)
 				indexBuffer = bs.readBytes(indexCount * 2)
 				lastFacesPos = bs.tell()
-				rapi.rpgSetName("OccluderMesh_" + str(i))
+				meshName = "OccluderMesh_" + str(i)
+				if (dialogOptions.dialog and len(dialogOptions.dialog.loadItems) > 1) or isSCN:
+					meshName = rapi.getLocalFileName(self.path).split(".")[0].replace("_", "") + "_" + meshName
+				rapi.rpgSetName(meshName) 
 				rapi.rpgBindPositionBuffer(vertexBuffer, noesis.RPGEODATA_FLOAT, 12)
 				rapi.rpgSetStripEnder(0x10000)
 				try:
@@ -4008,13 +4015,13 @@ def meshLoadModel(data, mdlList):
 			generateBoneMap(mdl)
 	mdlList.append(mdl)
 	
-	'''boneNames = {}
+	boneNames = {}
 	for i, bone in enumerate(mdl.bones):
 		if bone.name.lower() in boneNames:
 			print("Duplicate Bone Name:", bone.name)
 			collapseBones(mdl, 1)
 			break
-		boneNames[bone.name.lower()] = True'''
+		boneNames[bone.name.lower()] = True
 	
 	return 1
 
@@ -4224,7 +4231,7 @@ def meshWriteModel(mdl, bs):
 		RERTBytes = 8
 	elif ext.find(".2008058288") != -1: #Vanilla MHRise
 		sGameName = "MHRise"
-	elif ext.find(".230110883") != -1:
+	elif ext.find(".230110883") != -1 or ext.find(".220721329") != -1: 
 		sGameName = "SF6"
 		isSF6 = True
 	elif ext.find(".220907984") != -1:
