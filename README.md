@@ -1,5 +1,6 @@
 # fmt_RE_MESH-Noesis-Plugin
-A plugin for Rich Whitehouse's Noesis to import and export RE Engine meshes, textures and animations
+Chinese language added-A plugin for Rich Whitehouse's Noesis to import and export RE Engine meshes, textures and animations
+为该脚本添加中文支持
 
 ## SUPPORTED GAMES
 - Resident Evil 2 Remake
