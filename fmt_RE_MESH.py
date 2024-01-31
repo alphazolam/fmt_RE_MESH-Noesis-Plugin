@@ -18,6 +18,7 @@ bMHRiseExport 				= False					#Enable or disable export of mesh.2008058288 from 
 bMHRiseSunbreakExport 		= True					#Enable or disable export of mesh.2109148288 from the export list (and tex.28)
 bSF6Export					= True					#Enable or disable export of mesh.230110883 from the export list (and tex.143230113)
 bRE4Export					= True					#Enable or disable export of mesh.221108797 from the export list (and tex.143221013)
+bAJ_AAT						= True					#Enable or disable export of mesh.230612127 from the export list (and tex.719230324)
 
 
 #Mesh Global
@@ -91,13 +92,13 @@ def registerNoesisTypes():
 		noesis.addOption(handle, "-vfx", "Export as VFX mesh", 0)
 		return handle
 		
-	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.220907984;.230110883;.NewMesh")
+	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.220907984;.230110883;.230612127;.NewMesh")
 	noesis.setHandlerTypeCheck(handle, meshCheckType)
 	noesis.setHandlerLoadModel(handle, meshLoadModel)
 	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
 	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
 	
-	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.143221013;.143230113")
+	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.143221013;.143230113;.719230324")
 	noesis.setHandlerTypeCheck(handle, texCheckType)
 	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
 
@@ -109,7 +110,7 @@ def registerNoesisTypes():
 	noesis.setHandlerTypeCheck(handle, SCNCheckType)
 	noesis.setHandlerLoadModel(handle, SCNLoadModel)
 	
-	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663")
+	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663;.22")
 	noesis.setHandlerTypeCheck(handle, motlistCheckType)
 	noesis.setHandlerLoadModel(handle, motlistLoadModel)
 
@@ -214,6 +215,14 @@ def registerNoesisTypes():
 		noesis.setHandlerTypeCheck(handle, meshCheckType)
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
+	if bAJ_AAT:
+		handle = noesis.register("AJ_AAT Texture [PC]", ".719230324")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
+		handle = noesis.register("AJ_AAT Mesh", (".230612127"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
 		
 	noesis.logPopup()
 	return 1
@@ -242,6 +251,7 @@ formats = {
 	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
 	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643" },
 	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663" },
+	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230612127",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".22" },
 }
 
 extToFormat = { #incomplete, just testing
@@ -712,7 +722,7 @@ def hash_wide(key, getUnsigned=False):
 	
 def forceFindTexture(FileName, startExtension=""):
 	global sGameName
-	for i in range(8):
+	for i in range(9):
 		if i == 0:
 			if startExtension != "":
 				ext = startExtension
@@ -743,6 +753,9 @@ def forceFindTexture(FileName, startExtension=""):
 		elif i == 8:
 			sGameName = "ReVerse"
 			ext = ".30"
+		elif i == 9:
+			sGameName = "AJ_AAT"
+			ext = ".719230324"
 
 		texFile = LoadExtractedDir() + FileName + ext
 		#print ("texFile:", texFile)
@@ -1241,7 +1254,7 @@ dialogOptions = DialogOptions()
 
 DoubleClickTimer = namedtuple("DoubleClickTimer", "name idx timer")
 
-gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse", "ExoPrimal" ]
+gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse", "ExoPrimal", "AJ_AAT" ]
 fullGameNames = [
 	"Resident Evil 7",
 	"Resident Evil 7 RT",
@@ -1254,7 +1267,8 @@ fullGameNames = [
 	"Devil May Cry 5",
 	"Street Fighter 6",
 	"Resident Evil ReVerse",
-	"ExoPrimal"
+	"ExoPrimal",
+	"Apollo Justice: Ace Attorney Trilogy"
 ]
 		
 class openOptionsDialogImportWindow:
@@ -1998,7 +2012,7 @@ def SCNLoadModel(data, mdlList):
 	global sGameName
 	fName = rapi.getInputName().upper()
 	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName \
-	else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "ExoPrimal" if ("EXO" in fName or "EXP" in fName) else "DMC5"
+	else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "ExoPrimal" if ("EXO" in fName or "EXP" in fName) else "DMC5" if "DMC5" in fName else "AJ_AAT"
 	guessedName = guessedName + "RT" if (guessedName + "RT") in fName else guessedName
 	msg = ''.join([name + ", " for name, formatList in formats.items()])
 	inputName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "SCN Import", "Input the game name:  " + msg, guessedName, None)
@@ -2888,6 +2902,8 @@ class meshFile(object):
 			sGameName = "MHRise"
 		elif (meshVersion == 21061800 or self.path.find(".2109148288") != -1):  #MHRise Sunbreak version
 			sGameName = "MHRSunbreak"
+		elif (meshVersion == 230406984 or self.path.find(".230612127")) != -1:
+			sGameName = "AJ_AAT"
 		
 	'''MDF IMPORT ========================================================================================================================================================================'''
 	def createMaterials(self, matCount):
@@ -4240,6 +4256,8 @@ def meshWriteModel(mdl, bs):
 	elif ext.find(".221108797") != -1:
 		sGameName = "RE4"
 		isSF6 = 2
+	elif ext.find(".230612127") != -1:
+		sGameName = "AJ_AAT"
 		
 	setOffsets(formats[sGameName]["meshVersion"])
 	
@@ -4628,6 +4646,8 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(220822879) #RE4R
 		elif isSF6 == True or True:
 			bs.writeUInt(220705151) #SF6 and all others
+		elif sGameName == "AJ_AAT":
+			bs.writeUInt(230406984)
 			
 		bs.writeUInt(0) #Filesize
 		bs.writeUInt(0) #LODGroupHash
