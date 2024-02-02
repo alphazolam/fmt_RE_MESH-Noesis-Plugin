@@ -2821,6 +2821,7 @@ def motlistLoadModel(data, mdlList):
 
 isSF6 = False
 isExoPrimal = False
+isAJ = False
 BBskipBytes = numNodesLocation = LOD1OffsetLocation = normalsRecalcOffsLocation = bsHdrOffLocation = bsIndicesOffLocation = \
 vBuffHdrOffsLocation = bonesOffsLocation = nodesIndicesOffsLocation = namesOffsLocation = floatsHdrOffsLocation = 0
 
@@ -2840,6 +2841,8 @@ def setOffsets(ver):
 	floatsHdrOffsLocation = 	72 	if ver < 3 else 96
 	if isExoPrimal:
 		nodesIndicesOffsLocation = 104
+		namesOffsLocation = 136 
+	if isAJ:
 		namesOffsLocation = 136 
 
 class meshFile(object): 
@@ -2874,7 +2877,7 @@ class meshFile(object):
 		setOffsets(self.ver)
 		
 	def setGameName(self):
-		global sGameName, bSkinningEnabled, isSF6, isExoPrimal
+		global sGameName, bSkinningEnabled, isSF6, isExoPrimal, isAJ
 		sGameName = "RE2"
 		meshVersion = readUIntAt(self.inFile, 4)
 		isSF6 = isExoPrimal = False
@@ -2904,6 +2907,7 @@ class meshFile(object):
 			sGameName = "MHRSunbreak"
 		elif (meshVersion == 230406984 or self.path.find(".230612127")) != -1:
 			sGameName = "AJ_AAT"
+			isAJ = True
 		
 	'''MDF IMPORT ========================================================================================================================================================================'''
 	def createMaterials(self, matCount):
@@ -4258,6 +4262,7 @@ def meshWriteModel(mdl, bs):
 		isSF6 = 2
 	elif ext.find(".230612127") != -1:
 		sGameName = "AJ_AAT"
+		isAJ = True
 		
 	setOffsets(formats[sGameName]["meshVersion"])
 	
