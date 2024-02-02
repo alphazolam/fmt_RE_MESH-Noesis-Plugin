@@ -11,6 +11,7 @@ A plugin for Rich Whitehouse's Noesis to import and export RE Engine meshes, tex
 - Monster Hunter Rise
 - Street Fighter 6
 - ExoPrimal
+- Apollo Justice: Ace Attorney Trilogy
 
 
 ## INSTALLATION:
