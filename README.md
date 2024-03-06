@@ -1,6 +1,5 @@
 # fmt_RE_MESH-Noesis-Plugin
-Chinese language added-A plugin for Rich Whitehouse's Noesis to import and export RE Engine meshes, textures and animations
-为该脚本添加中文支持
+A plugin for Rich Whitehouse's Noesis to import and export RE Engine meshes, textures and animations
 
 ## SUPPORTED GAMES
 - Resident Evil 2 Remake
@@ -32,7 +31,7 @@ Then you can run the maxscript in 3dsMax with Scripts -> Run Script, and use it 
 - In the mesh/animation import window, double click ".." to go up a parent directory, or paste in a directory into the text box to go there
 - You can load multiple meshes together in addition to the mesh you first selected. They and their bones will be merged together into the same model
 - When loading a mesh, click the "Select Animation" button to load motlist animations with it, useful for quickly testing rigging
-
+- You can export an animation with the Noesis `-fbxmultitake` advanced option to separate the animations onto different tracks. Then find the Blender FBX import plugin, open the `io_scene_fbx` folder, locate the `import_fbx.py` find the `# Compute framerate settings section`, change its 25fps to 1, and save. Then change the frame rate from 1 to 60 after importing to Blender
 
 ### For more info on REEM, check out this guide:
 https://residentevilmodding.boards.net/thread/15374/noesis-maxscript-custom-physics-guide

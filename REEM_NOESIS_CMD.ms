@@ -694,7 +694,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						if thisExt != lastExt then (
 							lastExt = thisExt
 							--This list must have the same order as gamesList:
-							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".230110883") lastExt) 
+							changeCurrentGame ( findItem #(".2102020001", ".2109148288", ".1808312334", ".1902042334", ".221108797", ".1808282334", ".2101050001", ".220128762", ".32", ".2109108288", ".2109108288", ".2008058288", ".230110883", ".230612127") lastExt) 
 						)
 						
 						local objSelected = selection as array
@@ -919,7 +919,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		
 		on btn_import pressed do (
 			if noesisComponentsFound() then (
-				cmd = getOpenFileName types:"RE Engine MESH/MOTLIST|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001;*.230110883;*.60;*.85;*.99;*.484;*.486;*.524;*.528;*.653;*.663|All|*.*|"
+				cmd = getOpenFileName types:"RE Engine MESH/MOTLIST|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.220721329;*.1808312334;*.2102020001;*.230110883;*.230612127;*.60;*.85;*.99;*.484;*.486;*.524;*.528;*.653;*.663;*.750|All|*.*|"
 				Import_MESH cmd undefined
 			) else (messagebox "Failed to Locate Noesis!")
 		)
@@ -1421,5 +1421,5 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		
 	)
 	createdialog formNoesisCMD
-	cui.RegisterDialogBar formNoesisCMD style:#(#cui_dock_all, #cui_floatable, #cui_handles)
+	--cui.RegisterDialogBar formNoesisCMD style:#(#cui_dock_all, #cui_floatable, #cui_handles)
 )

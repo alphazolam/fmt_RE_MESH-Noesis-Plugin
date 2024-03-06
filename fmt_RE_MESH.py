@@ -1,7 +1,8 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
-#Special thanks: Chrrox, SilverEzredes 
-Version = "v3.18 (August 17, 2023)"
+#Special thanks: Chrrox, SilverEzredes, Enaium 
+Version = "v3.19 (March 6, 2024)"
+
 
 #Options: These are global options that change or enable/disable certain features
 
@@ -18,7 +19,8 @@ bMHRiseExport 				= False					#Enable or disable export of mesh.2008058288 from 
 bMHRiseSunbreakExport 		= True					#Enable or disable export of mesh.2109148288 from the export list (and tex.28)
 bSF6Export					= True					#Enable or disable export of mesh.230110883 from the export list (and tex.143230113)
 bRE4Export					= True					#Enable or disable export of mesh.221108797 from the export list (and tex.143221013)
-bAJ_AAT						= True					#Enable or disable export of mesh.230612127 from the export list (and tex.719230324)
+bExoExport					= True					#Enable or disable export of mesh.220907984 from the export list (and tex.40)
+bApolloExport				= True					#Enable or disable export of mesh.230612127 from the export list (and tex.719230324)
 
 
 #Mesh Global
@@ -97,8 +99,8 @@ def registerNoesisTypes():
 	noesis.setHandlerLoadModel(handle, meshLoadModel)
 	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
 	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
-	
-	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.143221013;.143230113;.719230324")
+
+	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.40;.143221013;.143230113;.719230324")
 	noesis.setHandlerTypeCheck(handle, texCheckType)
 	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
 
@@ -110,7 +112,7 @@ def registerNoesisTypes():
 	noesis.setHandlerTypeCheck(handle, SCNCheckType)
 	noesis.setHandlerLoadModel(handle, SCNLoadModel)
 	
-	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663;.22")
+	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663;.750")
 	noesis.setHandlerTypeCheck(handle, motlistCheckType)
 	noesis.setHandlerLoadModel(handle, motlistLoadModel)
 
@@ -215,11 +217,21 @@ def registerNoesisTypes():
 		noesis.setHandlerTypeCheck(handle, meshCheckType)
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
-	if bAJ_AAT:
-		handle = noesis.register("AJ_AAT Texture [PC]", ".719230324")
+
+	if bExoExport:
+		handle = noesis.register("ExoPrimal Texture [PC]", ".40")
 		noesis.setHandlerTypeCheck(handle, texCheckType)
 		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
-		handle = noesis.register("AJ_AAT Mesh", (".230612127"))
+		handle = noesis.register("ExoPrimal Mesh", (".220907984"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+
+	if bApolloExport:
+		handle = noesis.register("Apollo Justice: Ace Attorney Trilogy Texture [PC]", ".719230324")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
+		handle = noesis.register("Apollo Justice: Ace Attorney Trilogy Mesh", (".230612127"))
 		noesis.setHandlerTypeCheck(handle, meshCheckType)
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
@@ -251,7 +263,7 @@ formats = {
 	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
 	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643" },
 	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663" },
-	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230612127",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".22" },
+	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230612127",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".750" },
 }
 
 extToFormat = { #incomplete, just testing
@@ -722,43 +734,12 @@ def hash_wide(key, getUnsigned=False):
 	
 def forceFindTexture(FileName, startExtension=""):
 	global sGameName
-	for i in range(9):
-		if i == 0:
-			if startExtension != "":
-				ext = startExtension
-			else:
-				sGameName = "RE2"
-				ext = ".10"
-		elif i == 1:
-			sGameName == "RERT"
-			ext = ".34"
-		elif i == 2:
-			sGameName == "RERT"
-			ext = ".35"
-		elif i == 3:
-			sGameName = "RE3"
-			ext = ".190820018"
-		elif i == 4:
-			sGameName = "RE7"
-			ext = ".8"
-		elif i == 5:
-			sGameName = "RE8"
-			ext = ".30"
-		elif i == 6:
-			sGameName = "DMC5"
-			ext = ".11"
-		elif i == 7:
-			sGameName = "MHRise"
-			ext = ".28"
-		elif i == 8:
-			sGameName = "ReVerse"
-			ext = ".30"
-		elif i == 9:
-			sGameName = "AJ_AAT"
-			ext = ".719230324"
-
+	
+	for gameName, table in formats.items():
+		sGameName = gameName
+		ext = table["texExt"]
 		texFile = LoadExtractedDir() + FileName + ext
-		#print ("texFile:", texFile)
+		
 		if rapi.checkFileExists(texFile):
 			return texFile, ext
 			
@@ -984,13 +965,9 @@ def texWriteRGBA(data, width, height, bs):
 			if newTexName == None:
 				return 0
 		
-	bTexAsSource = False		
-	print(newTexName)
+	bTexAsSource = False	
 	newTEX = rapi.loadIntoByteArray(newTexName)
 	oldDDS = rapi.loadIntoByteArray(rapi.getInputName())
-	
-	print(newTexName.lower())
-	print(rapi.getInputName().lower())
 	
 	f = NoeBitStream(newTEX)
 	og = NoeBitStream(oldDDS)
@@ -1268,7 +1245,7 @@ fullGameNames = [
 	"Street Fighter 6",
 	"Resident Evil ReVerse",
 	"ExoPrimal",
-	"Apollo Justice: Ace Attorney Trilogy"
+	"Apollo Justice AAT"
 ]
 		
 class openOptionsDialogImportWindow:
@@ -1916,7 +1893,6 @@ def UVSLoadModel(data, mdlList):
 	bs.seek(texturePtr)
 	texFile = ""
 	sGameName = "RE2"
-	ext = ".10"
 	aspectRatios = []
 	for i in range(textureNum):
 		aspectRatios.append((1,1))
@@ -1927,7 +1903,7 @@ def UVSLoadModel(data, mdlList):
 		textures.append([mStateHolder, mDataPtr, mTextureHandleTbl, Name])
 		
 		if texFile != 0:
-			texFile, ext = forceFindTexture(Name, ext)
+			texFile, ext = forceFindTexture(Name)
 			if texFile != 0:
 				textureData = rapi.loadIntoByteArray(texFile)
 				matName = rapi.getExtensionlessName(rapi.getExtensionlessName(rapi.getLocalFileName(texFile)))
@@ -2243,7 +2219,7 @@ def SCNLoadModel(data, mdlList):
 			gameObjsDict[ids[i]] = tup
 		except: 
 			pass
-		print(tup)
+			
 		if tup[2] != None and rapi.checkFileExists(tup[2]) and tup[0].Name.find("AIMap") == -1:
 			mesh = meshFile(rapi.loadIntoByteArray(tup[2]), tup[2])
 			mesh.meshFile = tup[2]
@@ -2257,7 +2233,7 @@ def SCNLoadModel(data, mdlList):
 				mesh.pos *= parentRotation.transpose()
 				mesh.pos += parentPosition
 				mesh.rot = parentRotation * mesh.rot
-			print(mesh.pos, mesh.rot)
+			
 			mesh.fullTexList = totalTexList
 			mesh.fullMatList = totalMatList
 			mesh.fullBoneList = totalBoneList
@@ -2819,9 +2795,7 @@ def motlistLoadModel(data, mdlList):
 	return 1
 	
 
-isSF6 = False
-isExoPrimal = False
-isAJ = False
+isMeshVer3 = False
 BBskipBytes = numNodesLocation = LOD1OffsetLocation = normalsRecalcOffsLocation = bsHdrOffLocation = bsIndicesOffLocation = \
 vBuffHdrOffsLocation = bonesOffsLocation = nodesIndicesOffsLocation = namesOffsLocation = floatsHdrOffsLocation = 0
 
@@ -2839,11 +2813,11 @@ def setOffsets(ver):
 	nodesIndicesOffsLocation = 	96 	if ver < 3 else 112
 	namesOffsLocation = 		120 if ver < 3 else 144
 	floatsHdrOffsLocation = 	72 	if ver < 3 else 96
-	if isExoPrimal:
-		nodesIndicesOffsLocation = 104
-		namesOffsLocation = 136 
-	if isAJ:
-		namesOffsLocation = 136 
+	if sGameName == "AJ_AAT":
+		namesOffsLocation = 136 # on unrigged meshes its still 144
+	#if isExoPrimal:
+	#	nodesIndicesOffsLocation = 104
+	#	namesOffsLocation = 136 
 
 class meshFile(object): 
 
@@ -2877,19 +2851,18 @@ class meshFile(object):
 		setOffsets(self.ver)
 		
 	def setGameName(self):
-		global sGameName, bSkinningEnabled, isSF6, isExoPrimal, isAJ
+		global sGameName, bSkinningEnabled, isMeshVer3
 		sGameName = "RE2"
 		meshVersion = readUIntAt(self.inFile, 4)
-		isSF6 = isExoPrimal = False
+		isMeshVer3 = False
 		if meshVersion == 220822879:
-			isSF6 = 2
+			isMeshVer3 = True
 			sGameName = "RE4"
 		elif (meshVersion == 220705151 and self.path.find(".220907984") != -1):
-			isSF6 = 2
-			#isExoPrimal = True
+			isMeshVer3 = True
 			sGameName = "ExoPrimal"
 		elif (meshVersion == 220705151 and (self.path.find(".230110883") != -1) or self.path.find(".220721329") != -1):
-			isSF6 = True
+			isMeshVer3 = True
 			sGameName = "SF6"
 		elif meshVersion == 21041600: # or self.path.find(".2109108288") != -1: #RE2RT + RE3RT, and RE7RT
 			sGameName = "RE7RT" if self.path.find(".220128762") != -1 else "RERT"
@@ -2905,9 +2878,9 @@ class meshFile(object):
 			sGameName = "MHRise"
 		elif (meshVersion == 21061800 or self.path.find(".2109148288") != -1):  #MHRise Sunbreak version
 			sGameName = "MHRSunbreak"
-		elif (meshVersion == 230406984 or self.path.find(".230612127")) != -1:
+		elif (meshVersion == 230406984 or self.path.find(".230612127") != -1): #Apollo Justice
+			isMeshVer3 = True
 			sGameName = "AJ_AAT"
-			isAJ = True
 		
 	'''MDF IMPORT ========================================================================================================================================================================'''
 	def createMaterials(self, matCount):
@@ -3063,9 +3036,9 @@ class meshFile(object):
 		#Parse Materials
 		for i in range(matCountMDF):
 			
-			if self.mdfVer > 3: #isSF6 or isExoPrimal:
+			if self.mdfVer > 3:
 				bs.seek(0x10 + (i * 100))
-			elif self.mdfVer > 2:#sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "RE8" or sGameName == "MHRise":
+			elif self.mdfVer > 2:
 				bs.seek(0x10 + (i * 80))
 			else:
 				bs.seek(0x10 + (i * 64))
@@ -3096,15 +3069,15 @@ class meshFile(object):
 			floatStartOffs = bs.readUInt64()
 			mmtr_PathOffs = bs.readUInt64()
 			
-			if self.mdfVer >= 4: #isSF6 or isExoPrimal:
+			if self.mdfVer >= 4:
 				uknSF6offset = bs.readUInt64()
 				
 			bs.seek(materialNamesOffset)
 			materialName = ReadUnicodeString(bs)
 			bs.seek(mmtr_PathOffs)
-			mmtrName = ReadUnicodeString(bs)
-			hasTransparency = not not (((alphaFlag & ( 1 << 1 )) >> 1) or ((alphaFlag & ( 1 << 4 )) >> 4))
-			hasTransparency = hasTransparency or mmtrName.lower().find("_dirt") != -1 or mmtrName.lower().find("_decal") != -1 
+			mmtrName = ReadUnicodeString(bs).lower()
+			#hasTransparency = not not (((alphaFlag & ( 1 << 1 )) >> 1) or ((alphaFlag & ( 1 << 4 )) >> 4))
+			hasTransparency = "_dirt" in mmtrName or "_decal" in mmtrName or "_hair" in mmtrName 
 			
 			if bPrintFileList:
 				self.texNames.append(("natives/" + nDir + "/" + mmtrName + mmtrExt).lower())
@@ -3207,10 +3180,10 @@ class meshFile(object):
 			
 			for j in range(texCount): # texture headers
 				
-				if self.mdfVer >= 2: #sGameName == "RERT" or sGameName == "RE3" or sGameName == "ReVerse" or sGameName == "RE8" or sGameName == "MHRise" or sGameName == "SF6":
+				if self.mdfVer >= 2:
 					bs.seek(texHdrOffs + (j * 0x20))
 					textureInfo.append([bs.readUInt64(), bs.readUInt64(), bs.readUInt64(), bs.readUInt64()]) #TextureTypeOffset[0], uknBytes[1], TexturePathOffset[2], padding[3]
-					if self.mdfVer >= 4: #isSF6 or isExoPrimal:
+					if self.mdfVer >= 4:
 						bs.seek(8,1)
 				else:
 					bs.seek(texHdrOffs + (j * 0x18))
@@ -3285,10 +3258,9 @@ class meshFile(object):
 				
 				lowerTexName = texName.lower()
 				#if (("BaseMetal" in textureType or "BaseDielectric" in textureType or "BaseAlpha" in textureType or "BaseShift" in textureType)) and not bFoundBM: #
-				if "_alb" in lowerTexName and (not bFoundBM or ("_albm" in lowerTexName or "_albd" in lowerTexName)): #goddamn RE8
+				if "_alb" in lowerTexName and (not bFoundBM or ("_albd" in lowerTexName)): #goddamn RE8 #"_albm" in lowerTexName or 
 					bFoundBM = True
 					material.setTexture(texName)
-					print("set diffuse", texBaseColour[i])
 					material.setSpecularColor([.25, .25, .25, 1])
 					if "AlphaMap" in textureType:
 						extraParam = "isALBA"
@@ -3484,7 +3456,7 @@ class meshFile(object):
 	'''MESH IMPORT ========================================================================================================================================================================'''
 	def loadMeshFile(self): #, mdlList):
 		
-		global sGameName, bSkinningEnabled, isSF6, isExoPrimal
+		global sGameName, bSkinningEnabled, isMeshVer3, namesOffsLocation
 		bs = self.inFile
 		magic = bs.readUInt()
 		meshVersion = bs.readUInt()
@@ -3505,6 +3477,8 @@ class meshFile(object):
 		bs.seek(nodesIndicesOffsLocation)  
 		nodesIndicesOffs = bs.readUInt64()  
 		boneIndicesOffs = bs.readUInt64()  
+		if sGameName == "AJ_AAT":
+			namesOffsLocation = 136 if bonesOffs > 0 else 144
 		bs.seek(namesOffsLocation)
 		namesOffs = bs.readUInt64()
 		
@@ -3524,7 +3498,7 @@ class meshFile(object):
 		vertElemHdrOffs = bs.readUInt64()
 		vertBuffOffs = bs.readUInt64()
 		
-		if self.ver >= 3: #isSF6 or isExoPrimal:
+		if self.ver >= 3:
 			uknVB = bs.readUInt64()
 			vertBuffSize = bs.readUInt()
 			face_buffOffsSF6 = bs.readUInt()
@@ -3626,7 +3600,7 @@ class meshFile(object):
 				boneMapCount = bs.readUInt()	
 				bAddNumbers = False
 				if rapi.getInputName().find(".noesis") == -1 and (not dialogOptions.dialog or len(dialogOptions.dialog.loadItems) == 1) and (not dialogOptions.motDialog or not dialogOptions.motDialog.loadItems) :
-					maxBones = 1024 if isSF6 == True else 256
+					maxBones = 1024 if sGameName == "SF6" else 256
 					if bAddBoneNumbers == 1 or noesis.optWasInvoked("-bonenumbers"):
 						bAddNumbers = True
 					elif bAddBoneNumbers == 2 and boneCount > maxBones and rapi.getInputName().lower().find(".scn") == -1:
@@ -3839,7 +3813,7 @@ class meshFile(object):
 							rapi.rpgSetBoneMap(self.fullRemapTable)
 							idxList = []
 							start = vertexStartIndex + vertElemHeaders[weightIndex][2] + (vertElemHeaders[weightIndex][1] * vertsBefore)
-							if isSF6 == True:
+							if sGameName == "SF6":
 								for v in range(numVerts):
 									bs.seek(start + vertElemHeaders[weightIndex][1] * v)
 									for bID in range(3):
@@ -4130,7 +4104,7 @@ def getExportName(fileName, exportType=".mesh"):
 	
 def meshWriteModel(mdl, bs):
 
-	global sExportExtension, w1, w2, bWriteBones, bReWrite, bRigToCoreBones, bAddBoneNumbers, sGameName, bNewExportMenu, bDoVFX, isSF6 #doLOD
+	global sExportExtension, w1, w2, bWriteBones, bReWrite, bRigToCoreBones, bAddBoneNumbers, sGameName, bNewExportMenu, bDoVFX, isMeshVer3, namesOffsLocation #doLOD
 	
 	bWriteBones = noesis.optWasInvoked("-bones")
 	bReWrite = noesis.optWasInvoked("-rewrite")
@@ -4253,16 +4227,16 @@ def meshWriteModel(mdl, bs):
 		sGameName = "MHRise"
 	elif ext.find(".230110883") != -1 or ext.find(".220721329") != -1: 
 		sGameName = "SF6"
-		isSF6 = True
+		isMeshVer3 = True
 	elif ext.find(".220907984") != -1:
 		sGameName = "ExoPrimal"
-		isSF6 = 2
+		isMeshVer3 = True
 	elif ext.find(".221108797") != -1:
 		sGameName = "RE4"
-		isSF6 = 2
+		isMeshVer3 = True
 	elif ext.find(".230612127") != -1:
 		sGameName = "AJ_AAT"
-		isAJ = True
+		isMeshVer3 = True
 		
 	setOffsets(formats[sGameName]["meshVersion"])
 	
@@ -4320,14 +4294,16 @@ def meshWriteModel(mdl, bs):
 		
 	extension = os.path.splitext(rapi.getInputName())[1]
 	vertElemCount = 3 
-
+	
+	if sGameName == "AJ_AAT":
+		namesOffsLocation = 136 if bDoSkin else 144
 
 	#check if exporting bones and create skin bone map if so:
 	if bDoSkin:
 		vertElemCount += 1
 		bonesList = []
 		newSkinBoneMap = []
-		maxBones = 1024 if isSF6 else 256
+		maxBones = 1024 if sGameName == "SF6" else 256
 		
 		if (bReWrite or bWriteBones) and dialogOptions.doCreateBoneMap:
 			generateBoneMap(mdl)
@@ -4342,7 +4318,7 @@ def meshWriteModel(mdl, bs):
 				for bone in mdl.bones:
 					if bone.name.find(':') != -1:
 						bAddNumbers = True
-						print (bone.name, "has a \':\' (colon) in its name, auto-enabling bone numbers...")
+						print ("  ", bone.name, "has a \':\' (colon) in its name, auto-enabling bone numbers...")
 						break
 		
 		if (bReWrite or bWriteBones) and bForceRootBoneToBone0 and mdl.bones[0] != None and mdl.bones[0].name.lower() != "root" and mdl.bones[len(mdl.bones)-1].name.lower() == "root":
@@ -4424,15 +4400,12 @@ def meshWriteModel(mdl, bs):
 		f.seek(vBuffHdrOffs)
 		vertElemHdrOffs = f.readUInt64()
 		vertBuffOffs = f.readUInt64()
-		print(f.tell(), vBuffHdrOffsLocation, vBuffHdrOffs, vertElemHdrOffs, vertBuffOffs)
 		
-		if isSF6:
+		if isMeshVer3:
 			f.seek(8,1)
-			print("vBuffSz at", f.tell())
 			vertBuffSize = f.readUInt()
 			face_buffOffsSF6 = f.readUInt()
 			faceBuffOffs = face_buffOffsSF6 + vertBuffOffs
-			print(faceBuffOffs)
 			vertElemCountA = f.readUShort()
 			vertElemCountB = f.readUShort()
 		else:
@@ -4507,7 +4480,7 @@ def meshWriteModel(mdl, bs):
 			for i in range(boneCount):
 				boneNameAddressList.append(f.readUInt64())
 		
-		if isSF6:
+		if isMeshVer3:
 			f.seek(232)
 		elif sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8":
 			f.seek(192)
@@ -4635,7 +4608,7 @@ def meshWriteModel(mdl, bs):
 		
 		#print(newMainMeshes)
 		
-		LOD1Offs = 168 if isSF6 else 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise") else 136
+		LOD1Offs = 168 if isMeshVer3 else 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise") else 136
 		
 		#header:
 		bs.writeUInt(1213416781) #MESH
@@ -4647,17 +4620,17 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(2007158797)
 		elif sGameName == "RERT":
 			bs.writeUInt(21041600)
-		elif isSF6 == 2: 
-			bs.writeUInt(220822879) #RE4R
-		elif isSF6 == True or True:
-			bs.writeUInt(220705151) #SF6 and all others
 		elif sGameName == "AJ_AAT":
-			bs.writeUInt(230406984)
+			bs.writeUInt(22011900)
+		elif sGameName == "SF6":
+			bs.writeUInt(220705151) 
+		elif isMeshVer3 or True: 
+			bs.writeUInt(220822879) #RE4R and all others
 			
 		bs.writeUInt(0) #Filesize
 		bs.writeUInt(0) #LODGroupHash
 		
-		if isSF6:
+		if isMeshVer3:
 			bs.writeUByte(3) #flag
 			bs.writeUByte(2) #solvedOffset
 			bs.writeUShort(0) #uknSF6
@@ -4780,7 +4753,7 @@ def meshWriteModel(mdl, bs):
 		if bDoSkin:
 			boneRemapTable = []
 			
-			maxBoneMapLength = 256 if not isSF6 else 1024
+			maxBoneMapLength = 256 if sGameName != "SF6" else 1024
 			
 			if bAddNumbers and len(newSkinBoneMap) > 0:
 				boneMapLength = len(newSkinBoneMap)
@@ -4835,7 +4808,7 @@ def meshWriteModel(mdl, bs):
 					cousinBoneName = bnName.replace('r_','l_')
 				elif bnName.startswith('l_'):
 					cousinBoneName = bnName.replace('l_','r_')
-				elif isSF6 or bnName.startswith("root") or bnName.startswith("cog") or bnName.startswith("hip") \
+				elif isMeshVer3 or bnName.startswith("root") or bnName.startswith("cog") or bnName.startswith("hip") \
 				or bnName.startswith("waist") or bnName.startswith("spine") or bnName.startswith("chest") \
 				or bnName.startswith("stomach") or bnName.startswith("neck") or bnName.startswith("head") \
 				or bnName.startswith("null_"):
@@ -4977,7 +4950,7 @@ def meshWriteModel(mdl, bs):
 		#fix vertexBufferHeader
 		bs.seek(newVertBuffHdrOffs)
 		
-		SF6SkipBytes = 0 if not isSF6 else 32
+		SF6SkipBytes = 0 if not isMeshVer3 else 32
 		newVertBuffOffs = newVertBuffHdrOffs + 72 + SF6SkipBytes + 8*bDoSkin + 8*bDoUV2 + 8*bDoColors + 2*RERTBytes
 		
 		bs.writeUInt64(bs.tell() + 48 + SF6SkipBytes + 2*RERTBytes)
@@ -4992,7 +4965,7 @@ def meshWriteModel(mdl, bs):
 		bs.writeUInt64(0)
 		bs.writeInt(-newVertBuffOffs)
 		
-		if isSF6:
+		if isMeshVer3:
 			for i in range(4):
 				bs.writeUInt64(0)
 		if sGameName == "RERT": # and (bs.tell() % 8) != 0:
@@ -5072,14 +5045,14 @@ def meshWriteModel(mdl, bs):
 				bs.writeHalfFloat(vcmp[1])
 
 	def writeBoneID(bID, i):
-		if isSF6 == True:
+		if sGameName == "SF6":
 			if i==3:
 				bs.writeBits(0, 2)
 			bs.writeBits(bID, 10)
 		else:
 			bs.writeUByte(bID)
 	
-	boneIdMax = 6 if isSF6 == True else 8
+	boneIdMax = 6 if sGameName == "SF6" else 8
 	bnWeightStart = bs.tell()
 	
 	if bDoSkin:
@@ -5104,7 +5077,7 @@ def meshWriteModel(mdl, bs):
 					
 				for idx in range(len(vcmp.weights)):
 					if idx > boneIdMax:
-						if not isSF6: 
+						if not isMeshVer3: 
 							print ("Warning: ", mesh.name, "vertex", i,"exceeds the vertex weight limit of ", boneIdMax, "!", )
 						break
 					elif vcmp.weights[idx] != 0:				
@@ -5197,14 +5170,14 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(mainmeshFaceCount)
 		
 	#Fix vertex buffer header:
-	skipAmt = 16 if not isSF6 else 24
+	skipAmt = 16 if not isMeshVer3 else 24
 	fcBuffSize = faceDataEnd - vertexDataEnd
 	if bReWrite or bWriteBones:
 		bs.seek(newVertBuffHdrOffs+skipAmt) 
 	else: 
 		bs.seek(vBuffHdrOffs+skipAmt)
 	
-	if isSF6:
+	if isMeshVer3:
 		facesDiff = (80 + 8*vertElemCountB if bWriteBones else 0) if not bReWrite else (80 + 8*vertElemCount)
 		bs.writeUInt(faceDataEnd - vertexPosStart) #total buffer size
 		#print("faces offset", bs.tell(), vertexDataEnd, newVertBuffHdrOffs, facesDiff, vertexDataEnd - newVertBuffHdrOffs - facesDiff)
@@ -5246,7 +5219,7 @@ def meshWriteModel(mdl, bs):
 		elif elementType == 5:
 			bs.writeUInt(colorsStart - vertexPosStart) 
 	
-	if isSF6: 
+	if isMeshVer3: 
 		bs.seek(136)
 		bs.writeUInt64(vertElemHdrStart-16) #fix ukn3
 		bs.seek(152)
@@ -5268,7 +5241,7 @@ def meshWriteModel(mdl, bs):
 	bs.writeFloat(sphereRadius * newScale) #Bounding Sphere radius
 	bs.writeBytes((min * newScale).toBytes()) #BBox min
 	bs.writeBytes((max * newScale).toBytes()) #BBox max
-	if isSF6:
+	if isMeshVer3:
 		bs.seek(-20,1); bs.writeUInt(1)
 		bs.seek(12,1); bs.writeUInt(1)
 	
@@ -5313,7 +5286,7 @@ def meshWriteModel(mdl, bs):
 			bitFlag = openOptionsDialog.flag
 		else:
 			bitFlag = 0x00
-			if bDoVFX or rapi.getOutputName().find("2109148288") != -1 or isSF6: 
+			if bDoVFX or rapi.getOutputName().find("2109148288") != -1 or isMeshVer3: 
 				bitFlag = bitFlag + 0x80
 			if bDoSkin: 
 				bitFlag = bitFlag + 0x03
