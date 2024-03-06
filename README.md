@@ -12,6 +12,7 @@ Chinese language added-A plugin for Rich Whitehouse's Noesis to import and expor
 - Monster Hunter Rise
 - Street Fighter 6
 - ExoPrimal
+- Apollo Justice: Ace Attorney Trilogy
 
 
 ## INSTALLATION:

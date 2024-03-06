@@ -20,6 +20,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 	local mhrise_pak_location = "F:\\modmanager\\REtool\\MHRise_chunk_000\\natives\\stm\\"
 	local sf6_pak_location =	"F:\\modmanager\\REtool\\SF6Beta_chunk_000\\natives\\stm\\"
 	--local rt_pak_location = 	"F:\\modmanager\\REtool\\RE2RT_chunk_000\\natives\\stm\\"
+	local aj_aat_pak_location = "F:\\modmanager\\REtool\\AJ_AAT_chunk_000\\natives\\stm\\"
 	local show_ReWrite2 = true
 	
 	local current_pak_location = re2_pak_location
@@ -100,7 +101,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 		)  
 	) 
 	
-	local gamesList = #( "REVerse", "MHRSunbreak", "RE2", "RE3", "RE4", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6")
+	local gamesList = #( "REVerse", "MHRSunbreak", "RE2", "RE3", "RE4", "DMC5", "RE8", "RE7 RT", "RE7", "RE2 RT", "RE3 RT", "MHRise", "SF6", "AJ_AAT")
 	local currentItem = "RE4"
 	local currentItemIdx = 5
 	local currentItemIdx2 = 5
@@ -122,6 +123,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 				"MHRSunbreak": ".23"
 				"SF6": ".31"
 				"REVerse": ".20"
+				"AJ_AAT": ".37"
 				default: ""
 			)
 		)
@@ -564,6 +566,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						"MHRSunbreak": ".mesh.2109148288"
 						"SF6": ".mesh.230110883"
 						"REVerse": ".mesh.2102020001"
+						"AJ_AAT": ".mesh.230612127"
 						default: ""
 					)
 				current_pak_location = case currentItem of 
@@ -581,6 +584,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						"MHRSunbreak": mhrise_pak_location
 						"SF6": sf6_pak_location
 						"REVerse": reve_pak_location
+						"AJ_AAT": aj_aat_pak_location
 						default: ""
 					)
 			) catch ( undefined )
@@ -835,6 +839,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 					"MHRise": ".mesh.2008058288"
 					"MHRSunbreak": ".mesh.2109148288"
 					"REVerse": ".mesh.2102020001"
+					"AJ_AAT": ".mesh.230612127"
 					default: ""
 				)
 			current_extension2 = replace lbl_currentExt2.caption 1 5 ""
@@ -937,6 +942,7 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 						"RE3 RT": getSaveFileName types:"RT(*.2109108288)|*.2109108288|"
 						"SF6" : getSaveFileName types:"RT(*.230110883)|*.230110883|"
 						"REVerse" : getSaveFileName types:"REVerse(*.2102020001)|*.2102020001"
+						"AJ_AAT" : getSaveFileName types: "AJ_AAT(*.230612127)|*.230612127|"
 						default: getSaveFileName types:" \
 							DMC5(*.1808282334)|*.1808282334| \
 							RE2(*.1808312334)|*.1808312334| \
@@ -950,7 +956,8 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 							MHRise(*.2008058288)|*.2008058288| \
 							MHRSunbreak(*.2109148288)|*.2109148288| \
 							SF6(*.230110883)|*.230110883| \
-							REVerse(*.2102020001)|*.2102020001| "
+							REVerse(*.2102020001)|*.2102020001| \
+							AJ_AAT(*.230612127)|*.230612127| "
 					) 
 				) else
 					cmd = getOpenFileName types:"RE Engine Model|*.1808282334;*.1902042334;*.221108797;*.2010231143;*.2008058288;*.2109148288;*.2109108288;*.2101050001;*.32;*.220128762;*.1808312334;*.220721329;*.2102020001;*.230110883|All|*.*|"
