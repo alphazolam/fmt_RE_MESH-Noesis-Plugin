@@ -1,8 +1,8 @@
 try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 (
 	--RE Engine MESH Noesis CMD tool
-	--Version: v0.47
-	--Last Release: August 17, 2023
+	--Version: v0.48
+	--Last Release: March 10, 2023
 	--Authors: alphaZomega, mariokart64n
 	
 	local noesis_path = 		"C:\\Program Files\\Noesis\\Noesis.exe"
@@ -751,6 +751,13 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 								
 								mesh.modifiers[#Skin].bone_Limit = ( if lastExt==".230110883" then 6 else 8 )
 								
+								local found_colon = false
+								for b = 1 to bones.count do 
+									if (findString bones[b].name ":") != undefined then (
+										found_colon = true
+										exit
+									)
+								
 								for b = 1 to bones.count do (
 									if b == 1 and setCoords != undefined then
 										bones[b].transform = container.transform
@@ -763,7 +770,8 @@ try ( destroydialog formNoesisCMD; clearlistener() ) catch ()
 										if (getuserprop bones[b] "Bone_Number") == undefined do setuserprop bones[b] "Bone_Number" fs[1]
 										if (getuserprop bones[b] "Bone_Name") == undefined do setuserprop bones[b] "Bone_Name" fs[2]
 									)
-									if chk_populateBones.checked then (
+									if chk_populateBones.checked and found_colon then (
+										--print "Found bone numbers, sorting bones..."
 										bnIdx = findBoneIdx mesh.modifiers[#Skin] bones[b].name
 										if bnIdx == 0 then ( -- add bones to Skin that have numbers but are not currently in
 											if fs.count > 1 then 

@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes, Enaium 
-Version = "v3.19 (March 6, 2024)"
+Version = "v3.20 (March 10, 2024)"
 
 
 #Options: These are global options that change or enable/disable certain features
@@ -21,6 +21,7 @@ bSF6Export					= True					#Enable or disable export of mesh.230110883 from the e
 bRE4Export					= True					#Enable or disable export of mesh.221108797 from the export list (and tex.143221013)
 bExoExport					= True					#Enable or disable export of mesh.220907984 from the export list (and tex.40)
 bApolloExport				= True					#Enable or disable export of mesh.230612127 from the export list (and tex.719230324)
+bDD2Export					= True					#Enable or disable export of mesh.231011879 from the export list (and tex.760230703)
 
 
 #Mesh Global
@@ -94,13 +95,13 @@ def registerNoesisTypes():
 		noesis.addOption(handle, "-vfx", "Export as VFX mesh", 0)
 		return handle
 		
-	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.220907984;.230110883;.230612127;.NewMesh")
+	handle = noesis.register("RE Engine MESH [PC]", ".1902042334;.1808312334;.1808282334;.2008058288;.2102020001;.2101050001;.2109108288;.2109148288;.220128762;.220301866;.220721329;.221108797;.220907984;.230110883;.230612127;.231011879;.NewMesh")
 	noesis.setHandlerTypeCheck(handle, meshCheckType)
 	noesis.setHandlerLoadModel(handle, meshLoadModel)
 	noesis.addOption(handle, "-noprompt", "Do not prompt for MDF file", 0)
 	noesis.setTypeSharedModelFlags(handle, (noesis.NMSHAREDFL_WANTGLOBALARRAY))
 
-	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.40;.143221013;.143230113;.719230324")
+	handle = noesis.register("RE Engine Texture [PC]", ".10;.190820018;.11;.8;.28;.stm;.30;.31;.34;.35;.36;.40;.143221013;.143230113;.719230324;.760230703")
 	noesis.setHandlerTypeCheck(handle, texCheckType)
 	noesis.setHandlerLoadRGBA(handle, texLoadDDS)
 
@@ -112,7 +113,7 @@ def registerNoesisTypes():
 	noesis.setHandlerTypeCheck(handle, SCNCheckType)
 	noesis.setHandlerLoadModel(handle, SCNLoadModel)
 	
-	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663;.750")
+	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663;.750;.751")
 	noesis.setHandlerTypeCheck(handle, motlistCheckType)
 	noesis.setHandlerLoadModel(handle, motlistLoadModel)
 
@@ -236,6 +237,15 @@ def registerNoesisTypes():
 		noesis.setHandlerWriteModel(handle, meshWriteModel)
 		addOptions(handle)
 		
+	if bDD2Export:
+		handle = noesis.register("Dragon's Dogma 2 Texture [PC]", ".760230703")
+		noesis.setHandlerTypeCheck(handle, texCheckType)
+		noesis.setHandlerWriteRGBA(handle, texWriteRGBA);
+		handle = noesis.register("Dragon's Dogma 2 Mesh", (".231011879"))
+		noesis.setHandlerTypeCheck(handle, meshCheckType)
+		noesis.setHandlerWriteModel(handle, meshWriteModel)
+		addOptions(handle)
+		
 	noesis.logPopup()
 	return 1
 		
@@ -263,7 +273,8 @@ formats = {
 	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
 	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643" },
 	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663" },
-	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230612127",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".750" },
+	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".750" },
+	"DD2": 			{ "modelExt": ".231011879",  "texExt": ".760230703", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.40", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".751" },
 }
 
 extToFormat = { #incomplete, just testing
@@ -900,7 +911,9 @@ def findSourceTexFile(version_no, outputName=None):
 	newTexName = outputName or rapi.getOutputName().lower()
 	while newTexName.find("out.") != -1: 
 		newTexName = newTexName.replace("out.",".")
-	newTexName =  newTexName.replace(".dds","").replace(".tex","").replace(".10","").replace(".190820018","").replace(".143221013","").replace(".11","").replace(".8","").replace(".28","").replace(".34","").replace(".35","").replace(".30","").replace(".jpg","").replace(".png","").replace(".tga","").replace(".gif","")
+	newTexName =  newTexName.replace(".dds","").replace(".tex","").replace(".jpg","").replace(".png","").replace(".tga","").replace(".gif","")
+	for gameName, tbl in formats.items():
+		newTexName = newTexName.replace(tbl["texExt"], "")
 	ext = ".tex." + str(version_no)
 	if not rapi.checkFileExists(newTexName + ext):
 		for other_ext, subDict in extToFormat.items():
@@ -1231,7 +1244,7 @@ dialogOptions = DialogOptions()
 
 DoubleClickTimer = namedtuple("DoubleClickTimer", "name idx timer")
 
-gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse", "ExoPrimal", "AJ_AAT" ]
+gamesList = [ "RE7", "RE7RT", "RE2", "RERT", "RE3", "RE4", "RE8", "MHRSunbreak", "DMC5", "SF6", "ReVerse", "ExoPrimal", "AJ_AAT", "DD2" ]
 fullGameNames = [
 	"Resident Evil 7",
 	"Resident Evil 7 RT",
@@ -1245,7 +1258,8 @@ fullGameNames = [
 	"Street Fighter 6",
 	"Resident Evil ReVerse",
 	"ExoPrimal",
-	"Apollo Justice AAT"
+	"Apollo Justice AAT",
+	"Dragon's Dogma 2",
 ]
 		
 class openOptionsDialogImportWindow:
@@ -1988,8 +2002,10 @@ def SCNLoadModel(data, mdlList):
 	global sGameName
 	fName = rapi.getInputName().upper()
 	guessedName = "RE8" if "RE8" in fName else "RE7" if "RE7" in fName else "RE2" if "RE2" in fName else "RE3" if "RE3" in fName else "RE7" if "RE7" in fName \
-	else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "ExoPrimal" if ("EXO" in fName or "EXP" in fName) else "DMC5" if "DMC5" in fName else "AJ_AAT"
+	else "SF6" if "SF6" in fName else "MHRise" if "MHRISE" in fName else "RE4" if "RE4" in fName else "ExoPrimal" if ("EXO" in fName or "EXP" in fName) else "DMC5" if "DMC5" in fName \
+	else "DD2" if "DD2" in fName else "AJ_AAT"
 	guessedName = guessedName + "RT" if (guessedName + "RT") in fName else guessedName
+	
 	msg = ''.join([name + ", " for name, formatList in formats.items()])
 	inputName = noesis.userPrompt(noesis.NOEUSERVAL_FILEPATH, "SCN Import", "Input the game name:  " + msg, guessedName, None)
 	if not inputName: 
@@ -2813,7 +2829,7 @@ def setOffsets(ver):
 	nodesIndicesOffsLocation = 	96 	if ver < 3 else 112
 	namesOffsLocation = 		120 if ver < 3 else 144
 	floatsHdrOffsLocation = 	72 	if ver < 3 else 96
-	if sGameName == "AJ_AAT":
+	if sGameName == "AJ_AAT" or sGameName == "DD2":
 		namesOffsLocation = 136 # on unrigged meshes its still 144
 	#if isExoPrimal:
 	#	nodesIndicesOffsLocation = 104
@@ -2881,6 +2897,9 @@ class meshFile(object):
 		elif (meshVersion == 230406984 or self.path.find(".230612127") != -1): #Apollo Justice
 			isMeshVer3 = True
 			sGameName = "AJ_AAT"
+		elif (meshVersion == 230517984 or self.path.find(".231011879") != -1): #DD2
+			isMeshVer3 = True
+			sGameName = "DD2"
 		
 	'''MDF IMPORT ========================================================================================================================================================================'''
 	def createMaterials(self, matCount):
@@ -3477,7 +3496,7 @@ class meshFile(object):
 		bs.seek(nodesIndicesOffsLocation)  
 		nodesIndicesOffs = bs.readUInt64()  
 		boneIndicesOffs = bs.readUInt64()  
-		if sGameName == "AJ_AAT":
+		if sGameName == "AJ_AAT" or sGameName == "DD2":
 			namesOffsLocation = 136 if bonesOffs > 0 else 144
 		bs.seek(namesOffsLocation)
 		namesOffs = bs.readUInt64()
@@ -4237,6 +4256,9 @@ def meshWriteModel(mdl, bs):
 	elif ext.find(".230612127") != -1:
 		sGameName = "AJ_AAT"
 		isMeshVer3 = True
+	elif ext.find(".231011879") != -1:
+		sGameName = "DD2"
+		isMeshVer3 = True
 		
 	setOffsets(formats[sGameName]["meshVersion"])
 	
@@ -4482,6 +4504,8 @@ def meshWriteModel(mdl, bs):
 		
 		if isMeshVer3:
 			f.seek(232)
+			if sGameName == "AJ_AAT" or sGameName == "DD2":
+				f.seek(f.readUInt64())
 		elif sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8":
 			f.seek(192)
 		else:
@@ -4511,6 +4535,7 @@ def meshWriteModel(mdl, bs):
 					matID = f.readUInt() + 1
 					bFind = 0
 					sourceGroupID = meshVertexInfo[len(meshVertexInfo)-1][0] if bReadGroupIds else (mmc+1)
+					
 					for s in range(len(objToExport)):
 						#print (meshesToExport[objToExport[s]].name)
 						sName = meshesToExport[objToExport[s]].name.split('_')
@@ -4537,6 +4562,7 @@ def meshWriteModel(mdl, bs):
 		f.seek(0)
 		
 	if (len(submeshes) == 0):
+		print("No submeshes detected")
 		return 0
 	
 	#will be bounding box:
