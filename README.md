@@ -12,6 +12,7 @@ A plugin for Rich Whitehouse's Noesis to import and export RE Engine meshes, tex
 - Street Fighter 6
 - ExoPrimal
 - Apollo Justice: Ace Attorney Trilogy
+- Dragon's Dogma 2
 
 
 ## INSTALLATION:

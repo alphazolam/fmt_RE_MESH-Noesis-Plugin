@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes, Enaium 
-Version = "v3.20 (March 10, 2024)"
+Version = "v3.21 (March 23, 2024)"
 
 
 #Options: These are global options that change or enable/disable certain features
@@ -260,21 +260,21 @@ w1 = 127
 w2 = -128
 
 formats = {
-	"RE7":			{ "modelExt": ".-1", 		 "texExt": ".8", 		 "mmtrExt": ".69", 		   "nDir": "x64", "mdfExt": ".mdf2.6",  "meshVersion": 0, "mdfVersion": 0, "mlistExt": ".60" },
-	"RE2":			{ "modelExt": ".1808312334", "texExt": ".10",		 "mmtrExt": ".1808160001", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85" },
-	"DMC5":			{ "modelExt": ".1808282334", "texExt": ".11", 		 "mmtrExt": ".1808168797", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85" },
-	"RE3": 			{ "modelExt": ".1902042334", "texExt": ".190820018", "mmtrExt": ".1905100741", "nDir": "stm", "mdfExt": ".mdf2.13", "meshVersion": 1, "mdfVersion": 2, "mlistExt": ".99" },
-	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486" },
-	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484" },
-	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528" },
-	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500" },
-	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
-	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524" },
-	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653" },
-	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643" },
-	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663" },
-	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".750" },
-	"DD2": 			{ "modelExt": ".231011879",  "texExt": ".760230703", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.40", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".751" },
+	"RE7":			{ "modelExt": ".-1", 		 "texExt": ".8", 		 "mmtrExt": ".69", 		   "nDir": "x64", "mdfExt": ".mdf2.6",  "meshVersion": 0, "mdfVersion": 0, "mlistExt": ".60", "meshMagic":352921600 },
+	"RE2":			{ "modelExt": ".1808312334", "texExt": ".10",		 "mmtrExt": ".1808160001", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720 },
+	"DMC5":			{ "modelExt": ".1808282334", "texExt": ".11", 		 "mmtrExt": ".1808168797", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720 },
+	"RE3": 			{ "modelExt": ".1902042334", "texExt": ".190820018", "mmtrExt": ".1905100741", "nDir": "stm", "mdfExt": ".mdf2.13", "meshVersion": 1, "mdfVersion": 2, "mlistExt": ".99", "meshMagic":386270720 },
+	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486", "meshMagic":2020091500 },
+	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484", "meshMagic":21091000 },
+	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528", "meshMagic":21091000 },
+	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500", "meshMagic":2020091500 },
+	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524", "meshMagic":21041600 },
+	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524", "meshMagic":21041600 },
+	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653", "meshMagic":220705151 },
+	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643", "meshMagic":220705151 },
+	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663", "meshMagic":220822879 },
+	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".750", "meshMagic":230406984 },
+	"DD2": 			{ "modelExt": ".231011879",  "texExt": ".760230703", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.40", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".751", "meshMagic":230517984 },
 }
 
 extToFormat = { #incomplete, just testing
@@ -2821,14 +2821,15 @@ def setOffsets(ver):
 	BBskipBytes = 				8 	if ver == 1 else 0
 	numNodesLocation = 			18 	if ver < 3 else 20
 	LOD1OffsetLocation = 		24 	if ver < 3 else 32
-	normalsRecalcOffsLocation = 56 	if ver < 3 else 64
 	bsHdrOffLocation = 			64 	if ver < 3 else 56
-	bsIndicesOffLocation = 		112 if ver < 3 else 128
+	normalsRecalcOffsLocation = 56 	if ver < 3 else 64
 	vBuffHdrOffsLocation = 		80 	if ver < 3 else 72
+	floatsHdrOffsLocation = 	72 	if ver < 3 else 96
 	bonesOffsLocation = 		48 	if ver < 3 else 104
 	nodesIndicesOffsLocation = 	96 	if ver < 3 else 112
+	bsIndicesOffLocation = 		112 if ver < 3 else 128
 	namesOffsLocation = 		120 if ver < 3 else 144
-	floatsHdrOffsLocation = 	72 	if ver < 3 else 96
+	
 	if sGameName == "AJ_AAT" or sGameName == "DD2":
 		namesOffsLocation = 136 # on unrigged meshes its still 144
 	#if isExoPrimal:
@@ -3496,8 +3497,8 @@ class meshFile(object):
 		bs.seek(nodesIndicesOffsLocation)  
 		nodesIndicesOffs = bs.readUInt64()  
 		boneIndicesOffs = bs.readUInt64()  
-		if sGameName == "AJ_AAT" or sGameName == "DD2":
-			namesOffsLocation = 136 if bonesOffs > 0 else 144
+		#if sGameName == "AJ_AAT" or sGameName == "DD2":
+		#	namesOffsLocation = 136 if bonesOffs > 0 else 144
 		bs.seek(namesOffsLocation)
 		namesOffs = bs.readUInt64()
 		
@@ -4317,8 +4318,9 @@ def meshWriteModel(mdl, bs):
 	extension = os.path.splitext(rapi.getInputName())[1]
 	vertElemCount = 3 
 	
-	if sGameName == "AJ_AAT":
-		namesOffsLocation = 136 if bDoSkin else 144
+	if sGameName == "AJ_AAT" or sGameName == "DD2":
+		#namesOffsLocation = 136 if bDoSkin else 144
+		isDD2Mesh = True
 
 	#check if exporting bones and create skin bone map if so:
 	if bDoSkin:
@@ -4412,6 +4414,10 @@ def meshWriteModel(mdl, bs):
 		namesOffs = f.readUInt64() 
 		f.seek(floatsHdrOffsLocation)
 		floatsHdrOffs = f.readUInt64() 
+		
+		if isDD2Mesh:
+			f.seek(144)
+			DD2HashesOffset = f.readUInt64()
 		
 		newBBOffs = floatsHdrOffs
 		f.seek(LOD1Offs)
@@ -4638,20 +4644,7 @@ def meshWriteModel(mdl, bs):
 		
 		#header:
 		bs.writeUInt(1213416781) #MESH
-		if sGameName == "RE2" or sGameName == "RE3" or sGameName == "DMC5":
-			bs.writeUInt(386270720) #version no
-		elif sGameName == "RE8":
-			bs.writeUInt(2020091500)
-		elif sGameName == "MHRise":
-			bs.writeUInt(2007158797)
-		elif sGameName == "RERT":
-			bs.writeUInt(21041600)
-		elif sGameName == "AJ_AAT":
-			bs.writeUInt(22011900)
-		elif sGameName == "SF6":
-			bs.writeUInt(220705151) 
-		elif isMeshVer3 or True: 
-			bs.writeUInt(220822879) #RE4R and all others
+		bs.writeUInt(formats[sGameName]["meshMagic"])
 			
 		bs.writeUInt(0) #Filesize
 		bs.writeUInt(0) #LODGroupHash
@@ -4935,6 +4928,14 @@ def meshWriteModel(mdl, bs):
 		padToNextLine(bs)
 		
 		if bDoSkin:
+			#Write unknown DD2 hashes
+			if isDD2Mesh:
+				DD2HashesOffset = bs.tell()
+				bs.writeUInt(2745047434)
+				for i in range(mainmeshCount - 1):
+					bs.writeUInt(0)
+				padToNextLine(bs)
+		
 			#write bounding boxes
 			newBBOffs = bs.tell()
 			bs.writeUInt64(len(newSkinBoneMap))
@@ -4971,6 +4972,7 @@ def meshWriteModel(mdl, bs):
 			bs.seek(vBuffHdrOffsLocation)
 			bs.writeUInt64(newVertBuffHdrOffs)
 		bs.seek(namesOffsLocation)
+		print(newNamesOffs)
 		bs.writeUInt64(newNamesOffs)
 		
 		#fix vertexBufferHeader
@@ -5186,7 +5188,7 @@ def meshWriteModel(mdl, bs):
 				bs.writeUInt(submeshFaceCount[loopSubmeshCount])
 				bs.writeUInt(int(submeshFaceStride[loopSubmeshCount] / 2))
 				bs.writeUInt(submeshVertexStride[loopSubmeshCount])
-				if sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6" or sGameName == "RE4":
+				if formats[sGameName]["meshVersion"] >= 3 or sGameName == "RERT" or sGameName == "ReVerse" or sGameName == "MHRise" or sGameName == "RE8" or sGameName == "SF6" or sGameName == "RE4":
 					bs.seek(8, 1)
 				mainmeshVertexCount += submeshVertexCount[loopSubmeshCount]
 				mainmeshFaceCount += submeshFaceSize[loopSubmeshCount]
@@ -5246,10 +5248,14 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt(colorsStart - vertexPosStart) 
 	
 	if isMeshVer3: 
-		bs.seek(136)
+		DD2amt = 8 if isDD2Mesh else 0
+		bs.seek(136 + int(DD2amt * 2))
 		bs.writeUInt64(vertElemHdrStart-16) #fix ukn3
-		bs.seek(152)
+		bs.seek(152 + DD2amt)
 		bs.writeUInt64(vertexPosStart) #fix Vertices offset
+		if isDD2Mesh:
+			bs.seek(144)
+			bs.writeUInt64(DD2HashesOffset)
 	
 	#fix main bounding box:
 	bs.seek(LOD1Offs+8+BBskipBytes)
@@ -5282,7 +5288,7 @@ def meshWriteModel(mdl, bs):
 				pos = mdl.bones[newSkinBoneMap[remappedBoneIdx]].getMatrix()[3]
 			except:
 				continue
-			bs.seek(newBBOffs+16+remappedBoneIdx*32)
+			bs.seek(newBBOffs+16+remappedBoneIdx*32) 
 			boneWeightBBs[idx] = [(box[0]-pos[0])*newScale, (box[1]-pos[1])*newScale, (box[2]-pos[2])*newScale, 1.0, (box[3]-pos[0])*newScale, (box[4]-pos[1])*newScale, (box[5]-pos[2])*newScale, 1.0]
 			box = boneWeightBBs[idx]
 			for coord in box:
@@ -5324,6 +5330,11 @@ def meshWriteModel(mdl, bs):
 	bs.writeUInt(0)
 	bs.seek(bsIndicesOffLocation)
 	bs.writeUInt(0)
+	
+	#Unknown
+	if sGameName == "DD2" and bDoSkin:
+		bs.seek(12)
+		bs.writeUInt(2303293740)
 	
 	#fileSize
 	bs.seek(8)
