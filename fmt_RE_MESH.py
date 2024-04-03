@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes, Enaium 
-Version = "v3.21 (March 23, 2024)"
+Version = "v3.22 (April 3, 2024)"
 
 
 #Options: These are global options that change or enable/disable certain features
@@ -4144,6 +4144,7 @@ def meshWriteModel(mdl, bs):
 	bDoSkin = False
 	bDoColors = False
 	bAddNumbers = False
+	isDD2Mesh = False
 	f = None
 	newMeshName = ""
 	bDoVFX = noesis.optWasInvoked("-vfx") or (openOptionsDialog and openOptionsDialog.doVFX)
@@ -4640,7 +4641,7 @@ def meshWriteModel(mdl, bs):
 		
 		#print(newMainMeshes)
 		
-		LOD1Offs = 168 if isMeshVer3 else 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise") else 136
+		LOD1Offs = 176 if (sGameName == "DD2" or sGameName == "AJ_AAT") else 168 if isMeshVer3 else 128 if (sGameName == "RERT" or sGameName == "RE8" or sGameName == "MHRise") else 136
 		
 		#header:
 		bs.writeUInt(1213416781) #MESH
@@ -4672,6 +4673,9 @@ def meshWriteModel(mdl, bs):
 			bs.writeUInt64(0) #namesOffs
 			bs.writeUInt64(0) #verticesOffset
 			bs.writeUInt64(0) #ukn4/padding
+			if sGameName == "DD2":
+				bs.writeUInt64(0) #ukn5/padding
+			
 		else:
 			bs.writeUShort(3) #flag
 			bs.writeUShort(len(mdl.bones) * bDoSkin + numMats) #Node Count
