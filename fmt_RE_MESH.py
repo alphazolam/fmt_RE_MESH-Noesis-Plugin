@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes, Enaium 
-Version = "v3.22 (April 3, 2024)"
+Version = "v3.23 (April 5, 2024)"
 
 
 #Options: These are global options that change or enable/disable certain features
@@ -52,6 +52,7 @@ bShorterNames				= True					#Imports meshes named like "LOD_1_Main_1_Sub_1" inst
 bImportMips 				= False					#Imports texture mip maps as separate images
 texOutputExt				= ".tga"				#File format used when linking FBX materials to images
 doConvertMatsForBlender		= False					#Load alpha maps as reflection maps, metallic maps as specular maps and roughness maps as bump maps for use with modified Blender FBX importer
+bNoImportMenu				= False					#Hide the import menu on loading a mesh
 
 #Export Options
 bNewExportMenu				= False					#Show a custom Noesis window on mesh export
@@ -1711,7 +1712,7 @@ class openOptionsDialogImportWindow:
 			self.setGameBox(self.gameBox)
 			self.setLocalBox(self.localBox)
 			
-			if noesis.optWasInvoked("-b"):
+			if noesis.optWasInvoked("-b") or bNoImportMenu:
 				self.clickLoadButton()
 			
 			self.noeWnd.doModal()
@@ -2139,6 +2140,7 @@ def SCNLoadModel(data, mdlList):
 				mdfPath = mdfPath.replace("/", "\\")
 				mdfPath = current_pak_location + mdfPath + formats[sGameName]["mdfExt"].replace(".mdf2", "")
 			output = [meshPath, mdfPath]
+			
 		return output
 
 	def findGameObjects(bs):
@@ -4652,8 +4654,12 @@ def meshWriteModel(mdl, bs):
 		
 		if isMeshVer3:
 			bs.writeUByte(3) #flag
-			bs.writeUByte(2) #solvedOffset
-			bs.writeUShort(0) #uknSF6
+			if sGameName == "DD2" or sGameName == "AJ_AAT":
+				bs.writeUByte(130) #solvedOffset
+				bs.writeUShort(84) #uknSF6
+			else:
+				bs.writeUByte(2) #solvedOffset
+				bs.writeUShort(0) #uknSF6
 			bs.writeUInt(len(mdl.bones) * bDoSkin + numMats) #Node Count
 			bs.writeUInt64(0) #ukn
 			bs.writeUInt64(LOD1Offs) #LODOffs
