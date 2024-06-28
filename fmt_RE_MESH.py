@@ -1,7 +1,7 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes, Enaium 
-Version = "v3.24 (May 22, 2024)"
+Version = "v3.25 (June 28, 2024)"
 
 
 #Options: These are global options that change or enable/disable certain features
@@ -264,20 +264,20 @@ w2 = -128
 
 formats = {
 	"RE7":			{ "modelExt": ".-1", 		 "texExt": ".8", 		 "mmtrExt": ".69", 		   "nDir": "x64", "mdfExt": ".mdf2.6",  "meshVersion": 0, "mdfVersion": 0, "mlistExt": ".60", "meshMagic":352921600 },
-	"RE2":			{ "modelExt": ".1808312334", "texExt": ".10",		 "mmtrExt": ".1808160001", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720 },
-	"DMC5":			{ "modelExt": ".1808282334", "texExt": ".11", 		 "mmtrExt": ".1808168797", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720 },
-	"RE3": 			{ "modelExt": ".1902042334", "texExt": ".190820018", "mmtrExt": ".1905100741", "nDir": "stm", "mdfExt": ".mdf2.13", "meshVersion": 1, "mdfVersion": 2, "mlistExt": ".99", "meshMagic":386270720 },
-	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486", "meshMagic":2020091500 },
-	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484", "meshMagic":21091000 },
-	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528", "meshMagic":21091000 },
-	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500", "meshMagic":2020091500 },
-	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524", "meshMagic":21041600 },
-	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524", "meshMagic":21041600 },
-	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653", "meshMagic":230403828 },
-	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643", "meshMagic":220705151 },
-	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663", "meshMagic":220822879 },
-	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".750", "meshMagic":230406984 },
-	"DD2": 			{ "modelExt": ".231011879",  "texExt": ".760230703", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.40", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".751", "meshMagic":230517984 },
+	"RE2":			{ "modelExt": ".1808312334", "texExt": ".10",		 "mmtrExt": ".1808160001", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720, "motionIDsData":[24,8] },
+	"DMC5":			{ "modelExt": ".1808282334", "texExt": ".11", 		 "mmtrExt": ".1808168797", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720, "motionIDsData":[24,8]  },
+	"RE3": 			{ "modelExt": ".1902042334", "texExt": ".190820018", "mmtrExt": ".1905100741", "nDir": "stm", "mdfExt": ".mdf2.13", "meshVersion": 1, "mdfVersion": 2, "mlistExt": ".99", "meshMagic":386270720, "motionIDsData":[24,8] },
+	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486", "meshMagic":2020091500, "motionIDsData":[72,8] },
+	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484", "meshMagic":21091000, "motionIDsData":[72,8] },
+	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528", "meshMagic":21091000, "motionIDsData":[72,8] },
+	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500", "meshMagic":2020091500, "motionIDsData":[24,8] },
+	"RERT": 		{ "modelExt": ".2109108288", "texExt": ".34", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524", "meshMagic":21041600, "motionIDsData":[72,8] },
+	"RE7RT": 		{ "modelExt": ".220128762",  "texExt": ".35", 		 "mmtrExt": ".2109101635", "nDir": "stm", "mdfExt": ".mdf2.21", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".524", "meshMagic":21041600, "motionIDsData":[72,8] },
+	"SF6": 			{ "modelExt": ".230110883",  "texExt": ".143230113", "mmtrExt": ".221102761",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".653", "meshMagic":230403828, "motionIDsData":[72,8] },
+	"ExoPrimal": 	{ "modelExt": ".220907984",  "texExt": ".40", 		 "mmtrExt": ".221007878",  "nDir": "stm", "mdfExt": ".mdf2.31", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".643", "meshMagic":220705151, "motionIDsData":[72,8] },
+	"RE4": 			{ "modelExt": ".221108797",  "texExt": ".143221013", "mmtrExt": ".221007879",  "nDir": "stm", "mdfExt": ".mdf2.32", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".663", "meshMagic":220822879, "motionIDsData":[72,8] },
+	"AJ_AAT": 		{ "modelExt": ".230612127",  "texExt": ".719230324", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.37", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".750", "meshMagic":230406984, "motionIDsData":[72,8] },
+	"DD2": 			{ "modelExt": ".231011879",  "texExt": ".760230703", "mmtrExt": ".230815080",  "nDir": "stm", "mdfExt": ".mdf2.40", "meshVersion": 3, "mdfVersion": 4, "mlistExt": ".751", "meshMagic":230517984, "motionIDsData":[72,8] },
 }
 
 extToFormat = { #incomplete, just testing
@@ -2437,7 +2437,7 @@ def wRot(quat3):
 
 class motFile:
 	
-	def __init__(self, dataBytesArray, motlist=[], start=0):
+	def __init__(self, dataBytesArray, motlist=[], start=0, motionID=""):
 		self.bs = NoeBitStream(dataBytesArray)
 		bs = self.bs
 		self.start = start
@@ -2466,7 +2466,7 @@ class motFile:
 		nameOffs = bs.readUInt64()
 		self.name = readUnicodeStringAt(bs, nameOffs)
 		self.frameCount = bs.readFloat()
-		self.name += " (" + str(int(self.frameCount)) + " frames)"
+		self.name += " (" + str(int(self.frameCount)) + " frames)" + motionID
 		self.blending = bs.readFloat()
 		self.uknFloat0 = bs.readFloat()
 		self.uknFloat0 = bs.readFloat()
@@ -2785,6 +2785,7 @@ class motFile:
 class motlistFile:
 	
 	def __init__(self, data, path=""):
+		global sGameName
 		self.bs = NoeBitStream(data)
 		bs = self.bs
 		self.path = path
@@ -2804,21 +2805,23 @@ class motlistFile:
 		bs.seek(8, 1)
 		numOffsets = bs.readUInt()
 		bs.seek(pointersOffset)
-		self.motionIDs = []
+		self.motionIDs = {}
 		self.pointers = []
-		
-		#for i in range(numOffsets):
-		#	bs.seek(pointersOffset + i*8 + )
+		sGameName = findGameName("."+str(self.version), "mlistExt")
 			
 		for i in range(numOffsets):
+			if "motionIDsData" in formats[sGameName]:
+				bs.seek(motionIDsOffset + i*formats[sGameName]["motionIDsData"][0] + formats[sGameName]["motionIDsData"][1])
+				self.motionIDs[i] = bs.readUShort()
+			
 			bs.seek(pointersOffset + i*8)
 			motAddress = bs.readUInt64()
 			if motAddress and motAddress not in self.pointers and readUIntAt(bs, motAddress+4) == 544501613: # 'mot'
 				self.pointers.append(motAddress)
 				bs.seek(motAddress)
-				mot = motFile(bs.readBytes(bs.getSize()-bs.tell()), self, motAddress)
+				mot = motFile(bs.readBytes(bs.getSize()-bs.tell()), self, motAddress, " ID: " + str(self.motionIDs[i] if i in self.motionIDs else ""))
 				self.mots.append(mot)
-				
+		
 	def findBoneHeaders(self):
 		self.searchedForBoneHeaders = True
 		for mot in self.mots:
@@ -2968,6 +2971,13 @@ def setOffsets(ver):
 	#if isExoPrimal:
 	#	nodesIndicesOffsLocation = 104
 	#	namesOffsLocation = 136 
+	
+def findGameName(number, formatsKey):
+	for gameName, dictionary in formats.items():
+		if dictionary[formatsKey] == number:
+			return gameName
+	return ""
+
 
 class meshFile(object): 
 
