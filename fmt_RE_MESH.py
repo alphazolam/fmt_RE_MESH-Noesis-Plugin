@@ -1,7 +1,13 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes, Enaium 
-Version = "v3.25 (June 28, 2024)"
+Version = "v3.26 (August 2, 2024)"
+
+#Changelog:
+#-Fixed bug with viewing RE8 motlists
+#-Allowed opening of motlists with root-parented face bones
+#-Added support for meshes with integer face indices
+
 
 
 #Options: These are global options that change or enable/disable certain features
@@ -267,7 +273,7 @@ formats = {
 	"RE2":			{ "modelExt": ".1808312334", "texExt": ".10",		 "mmtrExt": ".1808160001", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720, "motionIDsData":[24,8] },
 	"DMC5":			{ "modelExt": ".1808282334", "texExt": ".11", 		 "mmtrExt": ".1808168797", "nDir": "x64", "mdfExt": ".mdf2.10", "meshVersion": 1, "mdfVersion": 1, "mlistExt": ".85", "meshMagic":386270720, "motionIDsData":[24,8]  },
 	"RE3": 			{ "modelExt": ".1902042334", "texExt": ".190820018", "mmtrExt": ".1905100741", "nDir": "stm", "mdfExt": ".mdf2.13", "meshVersion": 1, "mdfVersion": 2, "mlistExt": ".99", "meshMagic":386270720, "motionIDsData":[24,8] },
-	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486", "meshMagic":2020091500, "motionIDsData":[72,8] },
+	"RE8": 			{ "modelExt": ".2101050001", "texExt": ".30", 		 "mmtrExt": ".2102188797", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".486", "meshMagic":2020091500, "motionIDsData":[24,8] },
 	"MHRise":		{ "modelExt": ".2008058288", "texExt": ".28", 		 "mmtrExt": ".2109301553", "nDir": "stm", "mdfExt": ".mdf2.19", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".484", "meshMagic":21091000, "motionIDsData":[72,8] },
 	"MHRSunbreak":	{ "modelExt": ".2109148288", "texExt": ".28", 		 "mmtrExt": ".220427553",  "nDir": "stm", "mdfExt": ".mdf2.23", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".528", "meshMagic":21091000, "motionIDsData":[72,8] },
 	"ReVerse":		{ "modelExt": ".2102020001", "texExt": ".31", 		 "mmtrExt": ".2108110001", "nDir": "stm", "mdfExt": ".mdf2.20", "meshVersion": 2, "mdfVersion": 3, "mlistExt": ".500", "meshMagic":2020091500, "motionIDsData":[24,8] },
@@ -726,7 +732,11 @@ def collapseBones(mdl, threshold=0.01):
 	for i, bone in enumerate(mdl.bones):
 		boneMapId = i
 		name = allBoneNames[i].split(".", 1)[0]
-		sameBoneIdx = allBoneNames.index(name)
+		try:
+			sameBoneIdx = allBoneNames.index(name)
+		except ValueError:
+			print("ERROR:", name, " not in bones list!")
+			continue
 		#if sameBoneIdx != i and (getGlobalMatrix(mdl.bones[sameBoneIdx], mdl.bones)[3] - getGlobalMatrix(bone, mdl.bones)[3]).length() < threshold * fDefaultMeshScale:
 		if sameBoneIdx != i: # and (mdl.bones[sameBoneIdx].getMatrix()[3] - bone.getMatrix()[3]).length() < threshold * fDefaultMeshScale:
 			boneMapId = sameBoneIdx
@@ -3651,6 +3661,7 @@ class meshFile(object):
 			bs.seek(LOD1Offs)
 			countArray = bs.read("16B") #[0] = LODGroupCount, [1] = MaterialCount, [2] = UVChannelCount
 			matCount = countArray[1]
+			intFaces = countArray[6]
 			bLoadedMats = False
 			if not (noesis.optWasInvoked("-noprompt")) and not bRenameMeshesToFilenames and not rapi.noesisIsExporting() and not (dialogOptions.dialog != None and dialogOptions.doLoadTex == False):
 				bLoadedMats = self.createMaterials(matCount)
@@ -4007,14 +4018,14 @@ class meshFile(object):
 								print("WARNING:", meshName, "Color buffer would have been read out of bounds by provided indices", "\n	Buffer Size:", len(vertexBuffer), "\n	Required Size:", offs + numVerts*4)
 							
 						if numFaces > 0:
-							bs.seek(faceBuffOffs + (facesBefore * 2))
-							indexBuffer = bs.readBytes(numFaces * 2)
+							faceSize = 4 if intFaces == 1 else 2
+							bs.seek(faceBuffOffs + (facesBefore * faceSize))
+							indexBuffer = bs.readBytes(numFaces * faceSize)
 							if bRenderAsPoints:
-								rapi.rpgCommitTriangles(None, noesis.RPGEODATA_USHORT, (meshVertexInfo[j][4] - (vertsBefore)), noesis.RPGEO_POINTS, 0x1)
+								rapi.rpgCommitTriangles(None, noesis.RPGEODATA_USHORT if faceSize == 2 else noesis.RPGEODATA_UINT, (meshVertexInfo[j][4] - (vertsBefore)), noesis.RPGEO_POINTS, 0x1)
 							else:
-								rapi.rpgSetStripEnder(0x10000)
-								
-								rapi.rpgCommitTriangles(indexBuffer, noesis.RPGEODATA_USHORT, numFaces, noesis.RPGEO_TRIANGLE, 0x1)
+								#rapi.rpgSetStripEnder(0x10000)
+								rapi.rpgCommitTriangles(indexBuffer, noesis.RPGEODATA_USHORT if faceSize == 2 else noesis.RPGEODATA_UINT, numFaces, noesis.RPGEO_TRIANGLE, 0x1)
 								rapi.rpgClearBufferBinds()
 					
 					numVertsLOD += meshVertexInfo[j][4]
