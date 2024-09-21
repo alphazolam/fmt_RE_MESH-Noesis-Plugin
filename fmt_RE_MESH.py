@@ -1,10 +1,10 @@
 #RE Engine [PC] - ".mesh" plugin for Rich Whitehouse's Noesis
 #Authors: alphaZomega, Gh0stblade 
 #Special thanks: Chrrox, SilverEzredes, Enaium 
-Version = "v3.27 (September 19, 2024)"
+Version = "v3.28 (September 21, 2024)"
 
 #Changelog:
-#- Added read and tex-export support for Dead Rising Deluxe Remaster
+#- Fixed motlist.854 reading
 
 
 
@@ -121,7 +121,7 @@ def registerNoesisTypes():
 	noesis.setHandlerTypeCheck(handle, SCNCheckType)
 	noesis.setHandlerLoadModel(handle, SCNLoadModel)
 	
-	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663;.750;.751;.851")
+	handle = noesis.register("RE Engine MOTLIST [PC]", ".60;.85;.99;.484;.486;.500;.524;.528;.643;.653;.663;.750;.751;.851;.854")
 	noesis.setHandlerTypeCheck(handle, motlistCheckType)
 	noesis.setHandlerLoadModel(handle, motlistLoadModel)
 
